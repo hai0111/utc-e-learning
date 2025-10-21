@@ -28,15 +28,19 @@
           />
         </label>
 
-        <v-btn variant="outlined" color="primary" block append-icon="mdi-login"
-          >Login</v-btn
-        >
+        <v-btn variant="outlined" color="primary" block append-icon="mdi-login">
+          Login
+        </v-btn>
       </v-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: false,
+});
+
 const formValues = ref({
   username: "",
   password: "",

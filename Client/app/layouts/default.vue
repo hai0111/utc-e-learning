@@ -1,7 +1,11 @@
 <template>
-  <div class="bg-blue">
-    <slot />
-  </div>
+  <main class="bg-[#f1f5f9] flex flex-col min-h-screen">
+    <layout-main-header class="sticky top-0" />
+    <div class="grow">
+      <slot />
+    </div>
+    <layout-main-footer />
+  </main>
 </template>
 
 <script setup lang="ts"></script>
