@@ -5,6 +5,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
   if (auth.role !== requiredRole)
     throw createError({
       statusCode: 404,
-      message: "Không tìm thấy trang",
+      message: "Page not found",
     });
 });

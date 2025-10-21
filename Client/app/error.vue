@@ -10,7 +10,7 @@
       <h3 class="h2 mb-5 text-xl">{{ error?.message }}</h3>
 
       <a href="/">
-        <v-btn class="link_404" color="primary"> Quay lại trang chủ </v-btn>
+        <v-btn class="link_404" color="primary"> Back to home </v-btn>
       </a>
     </div>
   </div>
