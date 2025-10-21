@@ -1,6 +1,7 @@
 <template>
   <header class="flex items-center gap-3 p-4 bg-white">
     <nuxt-img src="/logo.png" width="50" alt="" />
+
     <h1 class="text-2xl font-extrabold grow">My E-Learning</h1>
 
     <span>Nguyễn Văn A</span>
