@@ -6,10 +6,9 @@
 |:----------------|:-----------|:-------------------------------------|
 | **Java**        | 17         | Main Language                        |
 | **Spring Boot** | 3.5.6      | Application development framework.   |
-| **Maven**       | 3.9.11     | Dependency management and Build tool. |
+| **Maven**       | 3.9.11     | Dependency management and Build tool.|
 | **Database**    | PostgreSQL | Database.                            |
 
----
 
 ## 2. Directory structure
 
@@ -32,3 +31,12 @@ Server/
 │   └── test/                               # Contains source code for Unit and Integration Tests.
 └── pom.xml                                 # Main Maven configuration file.
 ```
+
+
+## 3. Config database
+
+- Database name: e-learning
+- Host: localhost
+- Port: 5432
+- Username: postgres
+- Password: 123456
