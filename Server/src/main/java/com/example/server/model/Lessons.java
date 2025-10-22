@@ -33,17 +33,22 @@ public class Lessons {
     @Column(name = "Url")
     private String url;
 
+    @Column(name = "IsActive")
+    private String isActive;
+
     @Column(name = "lessonType")
     private LessonType lessonType;
 
     @Column(name = "OrderIndex")
     private Integer orderIndex;
 
-    @Column(name = "CreatedBy")
-    private Date createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    private Users createdBy;
 
-    @Column(name = "UpdatedBy")
-    private Date updatedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by", referencedColumnName = "id")
+    private Users updatedBy;
 
     @Column(name = "CreateAt")
     private Date createdAt;
