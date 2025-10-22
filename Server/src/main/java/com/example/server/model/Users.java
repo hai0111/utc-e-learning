@@ -32,17 +32,20 @@ public class Users {
     @Column(name = "Password")
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Role")
     private Role role;
 
     @Column(name = "IsActive")
     private Boolean isActive;
 
-    @Column(name = "CreatedBy")
-    private Date createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    private Users createdBy;
 
-    @Column(name = "UpdatedBy")
-    private Date updatedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by", referencedColumnName = "id")
+    private Users updatedBy;
 
     @Column(name = "CreateAt")
     private Date createdAt;
