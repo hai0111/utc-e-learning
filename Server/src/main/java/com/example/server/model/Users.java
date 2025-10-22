@@ -39,12 +39,12 @@ public class Users {
     @Column(name = "IsActive")
     private Boolean isActive;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "CreatedBy", referencedColumnName = "Id")
     private Users createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "UpdatedBy", referencedColumnName = "Id")
     private Users updatedBy;
 
     @Column(name = "CreateAt")

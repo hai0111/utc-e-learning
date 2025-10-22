@@ -31,13 +31,13 @@ public class Courses {
     @Column(name = "IsActive")
     private Boolean isActive;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "InstructorId", referencedColumnName = "Id")
     private Users users;
 
-    @Column(name = "CreateAt")
+    @Column(name = "CreatedAt")
     private Date createdAt;
 
-    @Column(name = "UpdateAt")
+    @Column(name = "UpdatedAt")
     private Date updatedAt;
 }
