@@ -11,9 +11,9 @@ export const toSlug = (text: string): string => {
 export function toLookup<T extends Record<string, any>, K extends keyof T>(
   arr: T[],
   key: K
-): Record<T[K], T> {
+): Map<T[K], T> {
   return arr.reduce((acc, item) => {
-    acc[item[key]] = item;
+    acc.set(item[key], item);
     return acc;
-  }, {} as Record<T[K], T>);
+  }, new Map<T[K], T>());
 }

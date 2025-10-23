@@ -55,9 +55,7 @@
         </template>
 
         <template #item.type="{ value }">
-          <v-chip :color="lessonLookup[value]?.color" density="compact">
-            {{ lessonLookup[value]?.title }}
-          </v-chip>
+          <custom-chip :items="lessonTypeOptions" :model-value="value" />
         </template>
 
         <template #item.isActive="{ item }">
@@ -133,8 +131,6 @@ const lessonTypeOptions = [
     color: "green",
   },
 ];
-
-const lessonLookup = toLookup(lessonTypeOptions, "value");
 
 const lessonsDataOriginal = ref(
   Array.from({ length: 10 }, (_, i) => {
