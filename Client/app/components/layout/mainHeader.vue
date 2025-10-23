@@ -1,5 +1,5 @@
 <template>
-  <header class="flex items-center gap-3 p-4 bg-white">
+  <v-card rounded="0" class="flex items-center gap-3 p-4 bg-white">
     <nuxt-img src="/logo.png" width="50" alt="" />
 
     <h1 class="text-2xl font-extrabold grow">My E-Learning</h1>
@@ -23,7 +23,7 @@
         </v-list-item>
       </v-list>
     </v-menu>
-  </header>
+  </v-card>
 </template>
 
 <script setup lang="ts"></script>
