@@ -25,7 +25,7 @@
 
             <template v-if="isEditBasicInfo">
               <info-item label="Active">
-                <v-switch v-model="basicInfo.isActive" color="primary" />
+                <v-switch inset v-model="basicInfo.isActive" color="primary" />
               </info-item>
             </template>
 
@@ -50,12 +50,11 @@
               <template v-else> {{ basicInfo.description }} </template>
             </info-item>
           </div>
-
-          <group-btn-form
-            v-if="isEditBasicInfo"
-            @click:cancel="isEditBasicInfo = false"
-          />
         </v-card-text>
+
+        <v-card-actions class="justify-end">
+          <group-btn-form v-if="isEditBasicInfo" @click:cancel="onCancelEdit" />
+        </v-card-actions>
       </v-card>
 
       <courses-lessons-for-teacher />
@@ -77,7 +76,13 @@ const basicInfoOrigin = ref({
     "Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium non consequuntur voluptatum alias dolorem, dolor maiores debitis incidunt rem, rerum laborum ea ullam. Sint, perspiciatis? Suscipit ex placeat repudiandae provident nam error totam quis. Reprehenderit aspernatur voluptatibus aperiam corporis tenetur quo esse quidem magnam autem inventore pariatur dolores animi non temporibus perspiciatis corrupti quae sapiente similique, vitae eligendi tempore eveniet! Quis, officia incidunt, ullam libero, asperiores soluta sunt itaque enim vitae hic illo pariatur ducimus neque magnam necessitatibus dicta sequi magni tempora nulla impedit! Inventore error numquam fugit sunt accusamus nihil excepturi, aliquam vitae pariatur ab in voluptate tenetur maiores voluptas animi doloremque dolor delectus debitis odit ad nostrum architecto quaerat. Eligendi perspiciatis neque delectus veritatis voluptas magnam, tempora",
   isActive: true,
 });
+
 const basicInfo = ref(cloneDeep(basicInfoOrigin.value));
+
+const onCancelEdit = () => {
+  basicInfo.value = cloneDeep(basicInfoOrigin.value);
+  isEditBasicInfo.value = false;
+};
 </script>
 
 <style scoped></style>

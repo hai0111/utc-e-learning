@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-end mb-4">
+  <div class="flex items-center gap-2">
     <v-btn
       :density="density"
       variant="text"
@@ -7,7 +7,7 @@
       append-icon="mdi-close"
       @click="$emit('click:cancel')"
     >
-      Cancel
+      {{ cancelText }}
     </v-btn>
     <v-btn
       :density="density"
@@ -16,7 +16,7 @@
       append-icon="mdi-check"
       @click="$emit('click:save')"
     >
-      Save
+      {{ saveText }}
     </v-btn>
   </div>
 </template>
@@ -27,9 +27,13 @@ import type { Density } from "vuetify/lib/composables/density.mjs";
 withDefaults(
   defineProps<{
     density?: Density;
+    saveText?: string;
+    cancelText?: string;
   }>(),
   {
     density: "default",
+    cancelText: "Cancel",
+    saveText: "Save",
   }
 );
 

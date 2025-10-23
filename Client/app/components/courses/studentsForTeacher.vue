@@ -3,7 +3,14 @@
     <v-card-title class="flex justify-space-between">
       Student List
 
-      <v-btn variant="text" color="success" append-icon="mdi-plus"> Add </v-btn>
+      <v-btn
+        variant="text"
+        color="success"
+        append-icon="mdi-plus"
+        @click="isOpenAdd = true"
+      >
+        Invite
+      </v-btn>
     </v-card-title>
 
     <v-card-subtitle>Total: {{ students.length }}</v-card-subtitle>
@@ -31,6 +38,8 @@
       </v-data-table>
     </v-card-text>
   </v-card>
+
+  <courses-invite-students-modal v-model="isOpenAdd" />
 </template>
 
 <script setup lang="ts">
@@ -56,6 +65,7 @@ const headers: DataTableHeader[] = [
 
   {
     key: "actions",
+    sortable: false,
   },
 ];
 
@@ -73,6 +83,8 @@ const students = computed(() =>
       toSlug(item.studentId).includes(toSlug(searchStudentValue.value))
   )
 );
+
+const isOpenAdd = ref(false);
 </script>
 
 <style scoped></style>

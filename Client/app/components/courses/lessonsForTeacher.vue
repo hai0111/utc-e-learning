@@ -16,25 +16,10 @@
         v-model="searchLessonValue"
       />
 
-      <div v-if="isDifferent" class="flex items-center justify-end mb-4">
-        <v-btn
-          density="compact"
-          variant="text"
-          color="red"
-          append-icon="mdi-close"
-          @click="cancelEditLessons"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          density="compact"
-          variant="text"
-          color="success"
-          append-icon="mdi-check"
-        >
-          Save
-        </v-btn>
+      <div v-if="isDifferent" class="flex items-center justify-end mb-1">
+        <group-btn-form @click:cancel="cancelEditLessons" />
       </div>
+
       <v-data-table
         ref="lessonTable"
         disable-sort
@@ -111,6 +96,7 @@ const lessonHeaders = [
   {
     key: "actions",
     width: 130,
+    sortable: false,
   },
 ];
 
