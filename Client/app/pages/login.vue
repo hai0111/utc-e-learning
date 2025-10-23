@@ -1,6 +1,8 @@
 <template>
   <div class="grid grid-cols-[1fr_40%] justify-end h-screen bg-blue-100">
-    <nuxt-img src="/login_bg.png" class="object-cover h-screen" />
+    <div>
+      <nuxt-img src="/login_bg.png" class="object-cover h-screen w-full" />
+    </div>
 
     <div class="flex flex-col justify-center gap-20 px-5 bg-white">
       <div class="text-5xl font-thin">Login</div>

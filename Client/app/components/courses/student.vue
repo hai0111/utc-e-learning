@@ -45,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const headers: DataTableHeader[] = [
   {
     key: "index",
-    title: "STT",
+    title: "Index",
   },
 
   {
