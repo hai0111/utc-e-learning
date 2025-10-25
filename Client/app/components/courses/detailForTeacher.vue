@@ -20,7 +20,12 @@
                 <v-text-field v-model="basicInfo.title" />
               </template>
 
-              <template v-else> {{ basicInfo.title }} </template>
+              <template v-else>
+                {{ basicInfo.title }}
+                <div class="col-span-2 font-weight-thin mt-1 text-sm">
+                  Last updated: 01/11/2025
+                </div>
+              </template>
             </info-item>
 
             <template v-if="isEditBasicInfo">
