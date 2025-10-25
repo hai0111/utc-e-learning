@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IColorItem } from "~/shared/types";
+import type { IColorItem } from "~/shared/types/common";
 
 const props = defineProps<{
   items: IColorItem[];

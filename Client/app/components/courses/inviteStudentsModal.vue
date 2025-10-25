@@ -9,7 +9,7 @@
         <v-text-field
           density="compact"
           variant="outlined"
-          placeholder="Search by name or ID"
+          placeholder="Search by name or code"
           v-model="searchStudentValue"
         />
         <v-data-table
@@ -17,7 +17,7 @@
           :headers="lessonHeaders"
           show-select
           :items="students"
-          item-value="studentId"
+          item-value="studentCode"
           color="primary"
         ></v-data-table>
       </v-card-text>
@@ -44,7 +44,7 @@ defineEmits<{
 const studentsData = Array.from({ length: 50 }, (_, i) => {
   i += 50;
   return {
-    studentId: `STU${(i + 1).toString().padStart(4, "0")}`,
+    studentCode: `STU${(i + 1).toString().padStart(4, "0")}`,
     fullName: `Student ${i + 1}`,
   };
 });
@@ -55,7 +55,7 @@ const students = computed(() =>
   studentsData.filter(
     (item) =>
       toSlug(item.fullName).includes(toSlug(searchStudentValue.value)) ||
-      toSlug(item.studentId).includes(toSlug(searchStudentValue.value))
+      toSlug(item.studentCode).includes(toSlug(searchStudentValue.value))
   )
 );
 
@@ -63,8 +63,8 @@ const selectedStudents = ref([]);
 
 const lessonHeaders: DataTableHeader[] = [
   {
-    key: "studentId",
-    title: "Student ID",
+    key: "studentCode",
+    title: "Student Code",
   },
 
   {

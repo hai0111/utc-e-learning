@@ -51,24 +51,45 @@
           <v-btn variant="text" icon="mdi-eye" color="blue" />
         </template>
 
-        <template #item.actions>
+        <template #item.actions="{ item }">
           <v-btn variant="text" icon color="blue" size="30">
             <v-icon icon="mdi-pencil" size="18" />
           </v-btn>
 
-          <v-btn variant="text" icon color="red" size="30">
+          <v-btn
+            variant="text"
+            icon
+            color="red"
+            size="30"
+            @click="openDeleteModal(item)"
+          >
             <v-icon icon="mdi-delete" size="18" />
           </v-btn>
         </template>
       </v-data-table>
     </v-card-text>
   </v-card>
+
+  <v-dialog v-model="deleteModal.isOpen" max-width="500">
+    <v-card>
+      <v-card-text>
+        <v-icon icon="mdi-alert" color="warning" />
+        Are you sure you want to delete the course
+        <br />
+        <strong>“{{ deleteModal.lesson?.title }}”</strong>?
+      </v-card-text>
+      <v-card-actions>
+        <group-btn-form @click:cancel="deleteModal.isOpen = false" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { cloneDeep, isEqual } from "lodash";
 import Sortable from "sortablejs";
 import type { VDataTable } from "vuetify/components";
+import type { ILesson } from "~/shared/types/lesson";
 const lessonHeaders = [
   {
     key: "order",
@@ -118,9 +139,9 @@ const lessonTypeOptions = [
   },
 ];
 
-const lessonsDataOriginal = ref(
+const lessonsDataOriginal = ref<ILesson[]>(
   Array.from({ length: 10 }, (_, i) => {
-    const type = lessonTypeOptions[i % lessonTypeOptions.length]?.value;
+    const type = lessonTypeOptions[i % lessonTypeOptions.length]!.value;
 
     const titles = {
       video: `Lesson ${i + 1}: Introduction to JavaScript`,
@@ -129,12 +150,12 @@ const lessonsDataOriginal = ref(
     };
 
     return {
+      id: (i + 1).toString(),
       order: i + 1,
       title: titles[type as keyof typeof titles],
       type,
       url: `https://example.com/lesson-${i + 1}`,
       isActive: i % 2 === 0,
-      actions: "",
     };
   })
 );
@@ -176,6 +197,16 @@ onMounted(() => {
   });
   return;
 });
+
+const deleteModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
+  isOpen: false,
+  lesson: null,
+});
+
+const openDeleteModal = (data: ILesson) => {
+  deleteModal.value.lesson = data;
+  deleteModal.value.isOpen = true;
+};
 </script>
 
 <style scoped></style>
