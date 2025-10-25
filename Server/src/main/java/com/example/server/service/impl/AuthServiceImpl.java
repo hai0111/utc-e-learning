@@ -9,12 +9,14 @@ import com.example.server.response.MessageResponse;
 import com.example.server.security.jwt.JwtUtil;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.AuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     @Autowired
@@ -42,11 +45,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public MessageResponse register(RegisterRequest registerRequest) throws ParseException {
         if (usersRepository.existsUsersByEmail(registerRequest.getEmail())) {
-            return new MessageResponse("Email already exists", 1);
+            return new MessageResponse("Email already exists", 409);
         }
         Users users = new Users();
         if (registerRequest.getRole() == null) {
-            return new MessageResponse("Role is not found", 1);
+            return new MessageResponse("Role is not found", 409);
         }
         users.setEmail(registerRequest.getEmail());
         users.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
@@ -58,31 +61,35 @@ public class AuthServiceImpl implements AuthService {
         users.setCreatedAt(new Date());
         users.setUpdatedAt(new Date());
         usersRepository.save(users);
-        return new MessageResponse("Account register successfully", 0);
+        return new MessageResponse("Account register successfully", 201);
     }
 
     @Override
     public JwtResponse login(LoginRequest loginRequest) throws InterruptedException {
         Authentication authentication = null;
+        Users users = usersRepository.findByEmailAndIsActive(loginRequest.getEmail(), false);
+        if (users != null) {
+            return new JwtResponse("Account does not exist or has stopped working", 403);
+        }
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
         } catch (Exception e) {
-            return null;
+            return new JwtResponse("Email or password isn't correct", 401);
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtil.createToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        return new JwtResponse(jwt, userDetails.getName(), userDetails.getEmail(), roles, 0);
+        return new JwtResponse(jwt, userDetails.getName(), userDetails.getEmail(), roles, "Login success", 200);
     }
 
     @Override
     public MessageResponse logout(String token) {
         Users users = getPrincipal(token);
-        return new MessageResponse("ok", 0);
+        return new MessageResponse("ok", 200);
     }
 
     @Override
