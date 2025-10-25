@@ -18,7 +18,7 @@
       <v-text-field
         density="compact"
         variant="outlined"
-        placeholder="Search by name or ID"
+        placeholder="Search by name or code"
         v-model="searchStudentValue"
       />
       <v-data-table
@@ -33,18 +33,37 @@
         </template>
 
         <template #item.actions="{ item }">
-          <v-btn variant="text" color="red" icon="mdi-delete" />
+          <v-btn
+            variant="text"
+            color="red"
+            icon="mdi-delete"
+            @click="openDeleteModal(item)"
+          />
         </template>
       </v-data-table>
     </v-card-text>
   </v-card>
 
   <courses-invite-students-modal v-model="isOpenAdd" />
+
+  <v-dialog v-model="deleteModal.isOpen" max-width="400">
+    <v-card>
+      <v-card-text>
+        <v-icon icon="mdi-alert" color="warning" />
+        Are you sure you want to unenroll
+        <strong>“{{ deleteModal.student?.fullName }}”</strong> from this course?
+      </v-card-text>
+      <v-card-actions>
+        <group-btn-form @click:cancel="deleteModal.isOpen = false" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import type { DataTableHeader } from "vuetify";
 import type { VDataTable } from "vuetify/components";
+import type { IStudent } from "~/shared/types/student";
 
 const headers: DataTableHeader[] = [
   {
@@ -54,8 +73,8 @@ const headers: DataTableHeader[] = [
   },
 
   {
-    key: "studentId",
-    title: "Student ID",
+    key: "studentCode",
+    title: "Student Code",
   },
 
   {
@@ -70,21 +89,32 @@ const headers: DataTableHeader[] = [
 ];
 
 const studentsData = Array.from({ length: 50 }, (_, i) => ({
-  studentId: `STU${(i + 1).toString().padStart(4, "0")}`,
+  id: i.toString(),
+  studentCode: `STU${(i + 1).toString().padStart(4, "0")}`,
   fullName: `Student ${i + 1}`,
 }));
 
 const searchStudentValue = ref<string>("");
 
-const students = computed(() =>
+const students = computed<IStudent[]>(() =>
   studentsData.filter(
     (item) =>
       toSlug(item.fullName).includes(toSlug(searchStudentValue.value)) ||
-      toSlug(item.studentId).includes(toSlug(searchStudentValue.value))
+      toSlug(item.studentCode).includes(toSlug(searchStudentValue.value))
   )
 );
 
 const isOpenAdd = ref(false);
+
+const deleteModal = ref<{ isOpen: boolean; student: null | IStudent }>({
+  isOpen: false,
+  student: null,
+});
+
+const openDeleteModal = (data: IStudent) => {
+  deleteModal.value.student = data;
+  deleteModal.value.isOpen = true;
+};
 </script>
 
 <style scoped></style>

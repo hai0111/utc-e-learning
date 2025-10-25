@@ -1,4 +1,4 @@
-import type { IColorItem } from "./types";
+import type { IColorItem } from "./types/common";
 
 export const ACTIVE_ITEMS: IColorItem[] = [
   {
