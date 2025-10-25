@@ -1,10 +1,7 @@
 package com.example.server.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 import java.util.UUID;
@@ -15,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Courses {
 
     @Id
@@ -31,13 +29,13 @@ public class Courses {
     @Column(name = "IsActive")
     private Boolean isActive;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "InstructorId", referencedColumnName = "Id")
     private Users users;
 
-    @Column(name = "CreateAt")
+    @Column(name = "CreatedAt")
     private Date createdAt;
 
-    @Column(name = "UpdateAt")
+    @Column(name = "UpdatedAt")
     private Date updatedAt;
 }

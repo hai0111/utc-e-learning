@@ -67,7 +67,7 @@ public class WebSecurityConfig {
                     req.requestMatchers("/register", "/login").permitAll();
 
                     //Role base authority
-                    req.requestMatchers("/api/**").hasAnyAuthority(Role.ADMIN.name(), Role.INSTRUCTOR.name())
+                    req.requestMatchers("/api/**").hasAnyAuthority(Role.ADMIN.name(), Role.INSTRUCTOR.name(), Role.STUDENT.name())
                             .anyRequest().permitAll();
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

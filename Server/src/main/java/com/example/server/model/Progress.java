@@ -31,6 +31,7 @@ public class Progress {
     @JoinColumn(name = "LessonId", referencedColumnName = "Id")
     private Lessons lesson;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "ProgressStatus")
     private ProgressStatus progressStatus;
 

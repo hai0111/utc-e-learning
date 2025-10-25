@@ -36,6 +36,7 @@ public class Lessons {
     @Column(name = "IsActive")
     private String isActive;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "lessonType")
     private LessonType lessonType;
 
@@ -43,11 +44,11 @@ public class Lessons {
     private Integer orderIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    @JoinColumn(name = "CreatedBy", referencedColumnName = "Id")
     private Users createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by", referencedColumnName = "id")
+    @JoinColumn(name = "UpdatedBy", referencedColumnName = "Id")
     private Users updatedBy;
 
     @Column(name = "CreateAt")
