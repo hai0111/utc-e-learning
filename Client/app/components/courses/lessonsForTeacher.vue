@@ -89,7 +89,7 @@
 import { cloneDeep, isEqual } from "lodash";
 import Sortable from "sortablejs";
 import type { VDataTable } from "vuetify/components";
-import type { ILesson } from "~/shared/types/lesson";
+import type { ILesson } from "~/types/lesson";
 const lessonHeaders = [
   {
     key: "order",

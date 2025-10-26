@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import type { DataTableHeader } from "vuetify";
 import type { VDataTable } from "vuetify/components";
-import type { IStudent } from "~/shared/types/student";
+import type { IStudent } from "~/types/student";
 
 const headers: DataTableHeader[] = [
   {
