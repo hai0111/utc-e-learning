@@ -1,7 +1,9 @@
 package com.example.server.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public class CustomServiceException extends RuntimeException {
 
     private final HttpStatus httpStatus;
@@ -11,7 +13,4 @@ public class CustomServiceException extends RuntimeException {
         this.httpStatus = httpStatus;
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
 }

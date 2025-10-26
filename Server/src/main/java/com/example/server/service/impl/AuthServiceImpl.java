@@ -8,7 +8,6 @@ import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
-import com.example.server.response.MessageResponse;
 import com.example.server.security.jwt.JwtUtil;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.AuthService;
@@ -20,16 +19,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -48,13 +43,13 @@ public class AuthServiceImpl implements AuthService {
     private JwtUtil jwtUtil;
 
     @Override
-    public MessageResponse register(RegisterRequest registerRequest) throws ParseException {
+    public ApiResponse<Users> register(RegisterRequest registerRequest) throws ParseException {
         if (usersRepository.existsUsersByEmail(registerRequest.getEmail())) {
-            return new MessageResponse("Email already exists", 409);
+            throw new CustomServiceException("Email already exists", HttpStatus.CONFLICT);
         }
         Users users = new Users();
         if (registerRequest.getRole() == null) {
-            return new MessageResponse("Role is not found", 409);
+            throw new CustomServiceException("Role is not found", HttpStatus.CONFLICT);
         }
         users.setEmail(registerRequest.getEmail());
         users.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
@@ -65,8 +60,8 @@ public class AuthServiceImpl implements AuthService {
         users.setCreatedBy(registerRequest.getUpdatedBy());
         users.setCreatedAt(new Date());
         users.setUpdatedAt(new Date());
-        usersRepository.save(users);
-        return new MessageResponse("Account register successfully", 201);
+        Users savedUser = usersRepository.save(users);
+        return new ApiResponse<>(200, "User registered successfully", savedUser);
     }
 
     @Override
@@ -102,17 +97,12 @@ public class AuthServiceImpl implements AuthService {
         JwtResponse data = new JwtResponse(
                 jwt,
                 userDetails.getId(),
+                userDetails.getCode(),
                 userDetails.getName(),
                 userDetails.getEmail(),
                 primaryRole
         );
         return new ApiResponse<>(200, "Login success", data);
-    }
-
-    @Override
-    public MessageResponse logout(String token) {
-        Users users = getPrincipal(token);
-        return new MessageResponse("ok", 200);
     }
 
     @Override

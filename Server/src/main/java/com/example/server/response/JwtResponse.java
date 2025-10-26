@@ -18,6 +18,8 @@ public class JwtResponse {
 
     private UUID id;
 
+    private String code;
+
     private String name;
 
     private String email;
