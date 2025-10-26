@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { cloneDeep } from "lodash";
-import { ACTIVE_ITEMS } from "~/shared/constants";
+import { ACTIVE_ITEMS } from "~/constants";
 
 const isEditBasicInfo = ref(false);
 

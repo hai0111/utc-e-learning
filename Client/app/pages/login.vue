@@ -12,8 +12,8 @@
           Username
 
           <v-text-field
+            v-model="formValues.email"
             class="mt-1"
-            v-model="formValues.username"
             variant="outlined"
             density="compact"
           />
@@ -30,7 +30,13 @@
           />
         </label>
 
-        <v-btn variant="outlined" color="primary" block append-icon="mdi-login">
+        <v-btn
+          variant="outlined"
+          color="primary"
+          block
+          append-icon="mdi-login"
+          @click="submit"
+        >
           Login
         </v-btn>
       </v-form>
@@ -39,14 +45,28 @@
 </template>
 
 <script setup lang="ts">
+import LoginService from "~/services/login.service";
+import type { ILoginBody } from "~/types/auth";
+
 definePageMeta({
   layout: false,
 });
 
-const formValues = ref({
-  username: "",
+const formValues = ref<ILoginBody>({
+  email: "",
   password: "",
 });
+
+const submit = async () => {
+  try {
+    const res = await LoginService.submit(formValues.value);
+
+    // TODO: Handle API
+    console.log(res);
+  } catch (err) {
+    console.error(err);
+  }
+};
 </script>
 
 <style scoped></style>
