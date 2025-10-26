@@ -1,9 +1,12 @@
 package com.example.server.service.impl;
 
+import com.example.server.enums.Role;
+import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Users;
 import com.example.server.repository.UsersRepository;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
+import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
 import com.example.server.response.MessageResponse;
 import com.example.server.security.jwt.JwtUtil;
@@ -11,6 +14,7 @@ import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -65,25 +70,43 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public JwtResponse login(LoginRequest loginRequest) throws InterruptedException {
+    public ApiResponse<JwtResponse> login(LoginRequest loginRequest) {
         Authentication authentication = null;
         Users users = usersRepository.findByEmailAndIsActive(loginRequest.getEmail(), false);
         if (users != null) {
-            return new JwtResponse("Account does not exist or has stopped working", 403);
+            throw new CustomServiceException("Account does not exist or has stopped working", HttpStatus.FORBIDDEN);
         }
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
         } catch (Exception e) {
-            return new JwtResponse("Email or password isn't correct", 401);
+            throw new CustomServiceException("Email or password isn't correct", HttpStatus.UNAUTHORIZED);
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtil.createToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        return new JwtResponse(jwt, userDetails.getName(), userDetails.getEmail(), roles, "Login success", 200);
+        Role primaryRole = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .map(roleString -> {
+                    try {
+                        return Role.valueOf(roleString);
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Unknown role string: " + roleString);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+        JwtResponse data = new JwtResponse(
+                jwt,
+                userDetails.getId(),
+                userDetails.getName(),
+                userDetails.getEmail(),
+                primaryRole
+        );
+        return new ApiResponse<>(200, "Login success", data);
     }
 
     @Override

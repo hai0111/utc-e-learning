@@ -2,6 +2,7 @@ package com.example.server.controller;
 
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
+import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
 import com.example.server.response.MessageResponse;
 import com.example.server.service.AuthService;
@@ -36,10 +37,8 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             return new ResponseEntity<>(new MessageResponse(Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage(), 400), HttpStatus.BAD_REQUEST);
         }
-        JwtResponse jwtResponse = authService.login(loginRequest);
-        return ResponseEntity.ok(
-                jwtResponse.getStatusCode() != 200 ?
-                        new MessageResponse(jwtResponse.getMessage(), jwtResponse.getStatusCode()) : jwtResponse);
+        ApiResponse<JwtResponse> response = authService.login(loginRequest);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/logoutAccount")
