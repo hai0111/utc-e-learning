@@ -88,4 +88,17 @@ public interface CoursesRepository extends JpaRepository<Courses, UUID> {
     CoursesDto findCourseByIdAndStudentId(UUID courseId, UUID studentId);
 
     Courses findByIdAndIsActive(UUID courseId, Boolean isActive);
+
+    @Query("SELECT c.id as id, " +
+            "c.title as title, " +
+            "c.description as description, " +
+            "c.isActive as isActive, " +
+            "c.createdAt as createdAt, " +
+            "c.updatedAt as updatedAt, " +
+            "u.name as instructor " +
+            "FROM Courses c " +
+            "INNER JOIN Users u on c.users.id = u.id " +
+            "INNER JOIN Enrollment e on c.id = e.course.id " +
+            "WHERE e.course.id =:courseId and e.users.id = :instructorId and c.isActive = true")
+    Courses findByIdAndIsActiveAndInstructorId(UUID courseId, Boolean isActive, UUID instructorId);
 }
