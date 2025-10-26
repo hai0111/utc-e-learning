@@ -1,0 +1,7 @@
+.custom-toastify {
+  &,
+  * {
+    max-height: 80px !important;
+    min-height: unset !important;
+  }
+}

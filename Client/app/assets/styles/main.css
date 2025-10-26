@@ -5,4 +5,5 @@
 html {
   font-family: "Quicksand", sans-serif !important;
   font-optical-sizing: auto !important;
+  overflow: unset !important;
 }
