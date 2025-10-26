@@ -1,10 +1,10 @@
 package com.example.server.controller;
 
+import com.example.server.exception.CustomServiceException;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
-import com.example.server.response.MessageResponse;
 import com.example.server.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest registerRequest, BindingResult bindingResult) throws ParseException {
         if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(new MessageResponse(Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage(), 400), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new CustomServiceException(Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage(), HttpStatus.BAD_REQUEST).getHttpStatus());
         }
         return ResponseEntity.ok(authService.register(registerRequest));
     }
@@ -35,15 +35,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequest loginRequest, BindingResult bindingResult) throws InterruptedException {
         if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(new MessageResponse(Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage(), 400), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new CustomServiceException(Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage(), HttpStatus.BAD_REQUEST).getHttpStatus());
         }
         ApiResponse<JwtResponse> response = authService.login(loginRequest);
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/logoutAccount")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok((authService.logout(token)));
     }
 
     @GetMapping("/principal")
