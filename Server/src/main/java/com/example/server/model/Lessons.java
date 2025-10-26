@@ -51,7 +51,7 @@ public class Lessons {
     @JoinColumn(name = "UpdatedBy", referencedColumnName = "Id")
     private Users updatedBy;
 
-    @Column(name = "CreateAt")
+    @Column(name = "CreatedAt")
     private Date createdAt;
 
     @Column(name = "UpdatedAt")
