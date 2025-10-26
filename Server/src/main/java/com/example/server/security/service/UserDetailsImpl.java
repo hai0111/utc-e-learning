@@ -19,6 +19,8 @@ public class UserDetailsImpl implements UserDetails {
 
     private UUID id;
 
+    private String code;
+
     private String name;
 
     private String email;
@@ -43,6 +45,7 @@ public class UserDetailsImpl implements UserDetails {
         authorities.add(role);
         return new UserDetailsImpl(
                 users.getId(),
+                users.getCode(),
                 users.getName(),
                 users.getEmail(),
                 users.getPassword(),
