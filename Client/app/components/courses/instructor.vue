@@ -1,9 +1,20 @@
 <template>
-  <v-breadcrumbs :items="breadcrumbs" class="ps-0">
-    <template v-slot:divider>
-      <v-icon icon="mdi-chevron-right" />
-    </template>
-  </v-breadcrumbs>
+  <div class="flex justify-between items-end">
+    <v-breadcrumbs :items="breadcrumbs" class="ps-0">
+      <template v-slot:divider>
+        <v-icon icon="mdi-chevron-right" />
+      </template>
+    </v-breadcrumbs>
+
+    <v-btn
+      color="success"
+      append-icon="mdi-plus"
+      class="mb-3"
+      to="/courses/create"
+    >
+      Create new
+    </v-btn>
+  </div>
 
   <VDataTable :headers="headers" :items="items" disable-sort>
     <template #item.index="{ index }"> {{ index + 1 }} </template>

@@ -2,7 +2,7 @@
   <div class="flex items-center gap-2">
     <v-btn
       :density="density"
-      variant="text"
+      :variant="variant"
       color="red"
       append-icon="mdi-close"
       @click="$emit('click:cancel')"
@@ -11,7 +11,7 @@
     </v-btn>
     <v-btn
       :density="density"
-      variant="text"
+      :variant="variant"
       color="success"
       append-icon="mdi-check"
       @click="$emit('click:save')"
@@ -22,11 +22,13 @@
 </template>
 
 <script setup lang="ts">
+import type { VBtn } from "vuetify/components";
 import type { Density } from "vuetify/lib/composables/density.mjs";
 
 withDefaults(
   defineProps<{
     density?: Density;
+    variant?: VBtn["variant"];
     saveText?: string;
     cancelText?: string;
   }>(),
@@ -34,6 +36,7 @@ withDefaults(
     density: "default",
     cancelText: "Cancel",
     saveText: "Save",
+    variant: "text",
   }
 );
 
