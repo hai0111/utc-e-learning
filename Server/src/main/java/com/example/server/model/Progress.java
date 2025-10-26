@@ -29,7 +29,7 @@ public class Progress {
 
     @ManyToOne
     @JoinColumn(name = "LessonId", referencedColumnName = "Id")
-    private Lessons lesson;
+    private Lessons lessons;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ProgressStatus")

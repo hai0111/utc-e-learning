@@ -21,6 +21,9 @@ public class Users {
     @Column(name = "Id")
     private UUID id;
 
+    @Column(name = "Code")
+    private String code;
+
     @Column(name = "Name")
     private String name;
 
@@ -45,7 +48,7 @@ public class Users {
     @JoinColumn(name = "UpdatedBy", referencedColumnName = "Id")
     private Users updatedBy;
 
-    @Column(name = "CreateAt")
+    @Column(name = "CreatedAt")
     private Date createdAt;
 
     @Column(name = "UpdatedAt")
