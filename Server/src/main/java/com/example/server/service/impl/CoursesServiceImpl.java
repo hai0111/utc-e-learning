@@ -6,7 +6,6 @@ import com.example.server.dto.UsersDto;
 import com.example.server.enums.Role;
 import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Courses;
-import com.example.server.model.Enrollment;
 import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
 import com.example.server.repository.EnrollmentRepository;
@@ -25,7 +24,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class CoursesServiceImpl implements CoursesService {

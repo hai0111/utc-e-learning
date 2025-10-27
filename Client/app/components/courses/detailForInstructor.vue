@@ -62,10 +62,10 @@
         </v-card-actions>
       </v-card>
 
-      <courses-lessons-for-teacher />
+      <courses-lessons-for-instructor />
     </div>
 
-    <courses-students-for-teacher />
+    <courses-students-for-instructor />
   </div>
 </template>
 
