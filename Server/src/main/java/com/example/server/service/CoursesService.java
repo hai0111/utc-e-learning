@@ -7,7 +7,6 @@ import com.example.server.request.CoursesRequest;
 import com.example.server.response.ApiResponse;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface CoursesService {
@@ -25,6 +24,4 @@ public interface CoursesService {
     Page<StudentDto> getPageStudentsOfCourse(int page, int size, UUID courseId);
 
     Page<StudentDto> getPageStudentsNotCourse(int page, int size, UUID courseId);
-
-    ApiResponse<Void> addStudentToCourse(UUID courseId, List<UUID> studentIds);
 }

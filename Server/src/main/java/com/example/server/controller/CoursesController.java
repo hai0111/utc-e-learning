@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -50,10 +49,5 @@ public class CoursesController {
     @GetMapping("/{courseId}/student-not-course")
     public ResponseEntity<?> getPageStudentsNotCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
         return ResponseEntity.ok(coursesService.getPageStudentsNotCourse(page, size, courseId).getContent());
-    }
-
-    @PostMapping("/{courseId}/add-student-to-course")
-    public ResponseEntity<?> addStudentToCourse(@PathVariable UUID courseId, @RequestParam List<UUID> studentsId) {
-        return ResponseEntity.ok(coursesService.addStudentToCourse(courseId, studentsId));
     }
 }

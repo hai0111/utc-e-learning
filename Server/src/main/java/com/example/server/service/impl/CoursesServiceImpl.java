@@ -207,48 +207,4 @@ public class CoursesServiceImpl implements CoursesService {
         return usersRepository.findAllStudentsNotCourse(courseId, userDetails.getId(), pageable);
     }
 
-    @Override
-    public ApiResponse<Void> addStudentToCourse(UUID courseId, List<UUID> studentIds) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        if (checkRole(authentication).equals(Role.STUDENT)) {
-            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
-        }
-        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
-        if (courses == null) {
-            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
-        }
-
-        List<UUID> studentIdsList = usersRepository.findAllStudentsId();
-        int count = 0;
-        for (int i = 0; i < studentIdsList.size(); i++) {
-            if (studentIdsList.get(i).equals(studentIds.get(i))) {
-                count++;
-                if (count == studentIds.size()) {
-                    break;
-                }
-            }
-        }
-        List<UUID> studentIdsListOfCourse = usersRepository.findAllStudentIdsOfCourse(courseId);
-        boolean checkIdExists = true;
-        for (int i = 0; i < studentIdsList.size(); i++) {
-            if (!studentIdsListOfCourse.get(i).equals(studentIds.get(i))) {
-                checkIdExists = false;
-                break;
-            }
-        }
-        if (!checkIdExists) {
-            throw new CustomServiceException("One of the student accounts does not exist.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        List<Enrollment> listEnrollments = new ArrayList<>();
-        for (UUID uuid : studentIdsList) {
-            Enrollment enrollment = new Enrollment();
-            enrollment.setUsers(Users.builder().id(uuid).build());
-            enrollment.setEnrolledAt(new Date());
-            enrollment.setCourse(Courses.builder().id(courseId).build());
-            listEnrollments.add(enrollment);
-        }
-        enrollmentRepository.saveAll(listEnrollments);
-        return new ApiResponse<>(200, "Add student successfully", null);
-    }
 }
