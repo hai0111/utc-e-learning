@@ -10,7 +10,7 @@
   </protected-component>
 
   <protected-component :roles="[E_ROLES.INSTRUCTOR]">
-    <courses-detail-for-teacher />
+    <courses-detail-for-instructor />
   </protected-component>
 </template>
 
