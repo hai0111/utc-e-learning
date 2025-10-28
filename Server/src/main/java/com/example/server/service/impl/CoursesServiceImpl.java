@@ -1,11 +1,14 @@
 package com.example.server.service.impl;
 
 import com.example.server.dto.CoursesDto;
+import com.example.server.dto.StudentDto;
+import com.example.server.dto.UsersDto;
 import com.example.server.enums.Role;
 import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Courses;
 import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
+import com.example.server.repository.EnrollmentRepository;
 import com.example.server.repository.UsersRepository;
 import com.example.server.request.CoursesRequest;
 import com.example.server.response.ApiResponse;
@@ -21,7 +24,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class CoursesServiceImpl implements CoursesService {
@@ -31,6 +36,9 @@ public class CoursesServiceImpl implements CoursesService {
 
     @Autowired
     private UsersRepository usersRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
     private Role checkRole(Authentication authentication) {
         String role = authentication.getAuthorities().stream()
@@ -159,4 +167,45 @@ public class CoursesServiceImpl implements CoursesService {
         Courses savedCourse = coursesRepository.save(courses);
         return new ApiResponse<>(200, "Update course successfully", savedCourse);
     }
+
+    @Override
+    public Page<StudentDto> getPageStudentsOfCourse(int page, int size, UUID courseId) {
+        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
+        if (courses == null) {
+            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        UsersDto usersDto = usersRepository.findByCourseAndInstructorId(courses.getId(), userDetails.getId());
+        if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
+            if (usersDto == null) {
+                throw new CustomServiceException("This account does not have permission to operate", HttpStatus.FORBIDDEN);
+            }
+        }
+        if (checkRole(authentication).equals(Role.STUDENT)) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        } else if (userDetails.getIsActive() == false) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        return usersRepository.findAllStudentsOfCourse(courseId, pageable);
+    }
+
+    @Override
+    public Page<StudentDto> getPageStudentsNotCourse(int page, int size, UUID courseId) {
+        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
+        if (courses == null) {
+            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        if (checkRole(authentication).equals(Role.STUDENT)) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        } else if (userDetails.getIsActive() == false) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        return usersRepository.findAllStudentsNotCourse(courseId, userDetails.getId(), pageable);
+    }
+
 }
