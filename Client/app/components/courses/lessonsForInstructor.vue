@@ -3,7 +3,14 @@
     <v-card-title class="flex justify-space-between">
       Lesson List
 
-      <v-btn variant="text" color="success" append-icon="mdi-plus"> Add </v-btn>
+      <v-btn
+        variant="text"
+        color="success"
+        append-icon="mdi-plus"
+        @click="$router.push(`/courses/${$route.params.id}/lessons/create`)"
+      >
+        Add
+      </v-btn>
     </v-card-title>
 
     <v-card-subtitle> Total: 21 </v-card-subtitle>
@@ -28,11 +35,11 @@
         items-per-page="0"
         hide-default-footer
         sticky
-        :sort-by="[{ key: 'order', order: 'asc' }]"
+        :sort-by="[{ key: 'orderIndex', order: 'asc' }]"
         class="max-h-[500px]"
-        item-value="order"
+        item-value="orderIndex"
       >
-        <template #item.order>
+        <template #item.orderIndex>
           <v-icon
             icon="mdi-drag-horizontal-variant"
             class="cursor-pointer sort-btn"
@@ -92,7 +99,7 @@ import type { VDataTable } from "vuetify/components";
 import type { ILesson } from "~/types/lesson";
 const lessonHeaders = [
   {
-    key: "order",
+    key: "orderIndex",
   },
 
   {
@@ -151,7 +158,7 @@ const lessonsDataOriginal = ref<ILesson[]>(
 
     return {
       id: (i + 1).toString(),
-      order: i + 1,
+      orderIndex: i + 1,
       title: titles[type as keyof typeof titles],
       type,
       url: `https://example.com/lesson-${i + 1}`,
