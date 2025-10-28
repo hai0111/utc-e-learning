@@ -5,8 +5,16 @@ import com.example.server.service.CoursesService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -49,5 +57,10 @@ public class CoursesController {
     @GetMapping("/{courseId}/student-not-course")
     public ResponseEntity<?> getPageStudentsNotCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
         return ResponseEntity.ok(coursesService.getPageStudentsNotCourse(page, size, courseId).getContent());
+    }
+
+    @PostMapping("/{courseId}/add-student-to-course")
+    public ResponseEntity<?> addStudentToCourse(@PathVariable UUID courseId, @RequestParam List<UUID> studentIds) {
+        return ResponseEntity.ok(coursesService.addStudentToCourse(courseId, studentIds));
     }
 }

@@ -6,6 +6,7 @@ import com.example.server.dto.UsersDto;
 import com.example.server.enums.Role;
 import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Courses;
+import com.example.server.model.Enrollment;
 import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
 import com.example.server.repository.EnrollmentRepository;
@@ -27,6 +28,10 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 public class CoursesServiceImpl implements CoursesService {
@@ -208,4 +213,55 @@ public class CoursesServiceImpl implements CoursesService {
         return usersRepository.findAllStudentsNotCourse(courseId, userDetails.getId(), pageable);
     }
 
+    @Override
+    public ApiResponse<Void> addStudentToCourse(UUID courseId, List<UUID> studentIds) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        if (checkRole(authentication).equals(Role.STUDENT)) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        }
+        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
+        if (courses == null) {
+            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
+        }
+
+        if (!courses.getUsers().getId().equals(userDetails.getId())) {
+            throw new CustomServiceException("This account does not manage this course", HttpStatus.FORBIDDEN);
+        }
+
+        // Get all active student IDs
+        List<UUID> allStudentIdsList = usersRepository.findAllStudentsId();
+
+        // Check if student ID exists
+        // If there is a student ID that does not exist (meaning it is not in the list of all student IDs), then immediately stop the loop.
+        for (UUID studentId : studentIds) {
+            if (!allStudentIdsList.contains(studentId)) {
+                throw new CustomServiceException("One of the student accounts does not exist.", HttpStatus.NOT_FOUND);
+            }
+        }
+
+        // Get all student IDs that have registered for the course and convert them to Set
+        List<UUID> studentIdsListOfCourse = usersRepository.findAllStudentIdsOfCourse(courseId);
+        Set<UUID> enrolledStudentIdsSet = new HashSet<>(studentIdsListOfCourse);
+
+        // Check if any student ID has registered for the course then stop checking and report an error
+        for (UUID studentId : studentIds) {
+            if (enrolledStudentIdsSet.contains(studentId)) {
+                throw new CustomServiceException("One of the students is already enrolled in this course.", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        // If the ID passes the 2 rounds of checking, the data will be added to the Enrollment table.
+        List<Enrollment> listEnrollments = new ArrayList<>();
+        for (UUID studentId : studentIds) {
+            Enrollment enrollment = new Enrollment();
+            enrollment.setUsers(Users.builder().id(studentId).build());
+            enrollment.setEnrolledAt(new Date());
+            enrollment.setCourse(Courses.builder().id(courseId).build());
+            listEnrollments.add(enrollment);
+        }
+
+        enrollmentRepository.saveAll(listEnrollments);
+        return new ApiResponse<>(200, "Add student successfully", null);
+    }
 }
