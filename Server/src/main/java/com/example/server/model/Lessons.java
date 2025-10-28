@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -34,7 +35,7 @@ public class Lessons {
     private String url;
 
     @Column(name = "IsActive")
-    private String isActive;
+    private Boolean isActive;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "lessonType")
@@ -52,8 +53,8 @@ public class Lessons {
     private Users updatedBy;
 
     @Column(name = "CreatedAt")
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 }
