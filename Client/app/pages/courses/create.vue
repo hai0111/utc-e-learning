@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center px-4">
-    <div class="w-[1000px] max-w-full">
+    <div class="w-full">
       <v-breadcrumbs :items="breadcrumbs" class="ps-0">
         <template v-slot:divider>
           <v-icon icon="mdi-chevron-right" />
