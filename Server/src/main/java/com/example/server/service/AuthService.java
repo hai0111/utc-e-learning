@@ -5,6 +5,7 @@ import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
+import com.example.server.response.UsersDetailsResponse;
 
 import java.text.ParseException;
 
@@ -14,5 +15,5 @@ public interface AuthService {
 
     ApiResponse<JwtResponse> login(LoginRequest loginRequest);
 
-    Users getPrincipal(String token);
+    ApiResponse<UsersDetailsResponse> getPrincipalFromContext();
 }

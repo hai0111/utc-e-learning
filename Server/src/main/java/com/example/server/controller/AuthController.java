@@ -11,7 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.text.ParseException;
 import java.util.Objects;
@@ -42,7 +47,7 @@ public class AuthController {
     }
 
     @GetMapping("/principal")
-    public ResponseEntity<?> getAccountPrincipal(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(authService.getPrincipal(token));
+    public ResponseEntity<?> getAccountPrincipal() {
+        return ResponseEntity.ok(authService.getPrincipalFromContext());
     }
 }
