@@ -1,8 +1,10 @@
 package com.example.server.dto;
 
+import java.util.UUID;
+
 public interface UsersDto {
 
-    String getId();
+    UUID getId();
 
     String getName();
 
@@ -12,7 +14,7 @@ public interface UsersDto {
 
     String getRole();
 
-    Boolean getActive();
+    Boolean getIsActive();
 
     String getCreatedBy();
 

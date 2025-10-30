@@ -8,6 +8,7 @@ import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
+import com.example.server.response.UsersDetailsResponse;
 import com.example.server.security.jwt.JwtUtil;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.AuthService;
@@ -106,9 +107,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Users getPrincipal(String token) {
-        String parseToken = token.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromJwtToken(parseToken);
-        return usersRepository.findByEmail(email).orElse(null);
+    public ApiResponse<UsersDetailsResponse> getPrincipalFromContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomServiceException("Not logged in yet", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse(null);
+        UsersDetailsResponse usersDetailsResponse = UsersDetailsResponse.toUserDetailsResponse(userDetails, role);
+        return new ApiResponse<>(200, "Success", usersDetailsResponse);
     }
 }
