@@ -4,6 +4,7 @@ import com.example.server.enums.Role;
 import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Users;
 import com.example.server.repository.UsersRepository;
+import com.example.server.request.ChangePasswordRequest;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.response.ApiResponse;
@@ -120,5 +121,69 @@ public class AuthServiceImpl implements AuthService {
                 .orElse(null);
         UsersDetailsResponse usersDetailsResponse = UsersDetailsResponse.toUserDetailsResponse(userDetails, role);
         return new ApiResponse<>(200, "Success", usersDetailsResponse);
+    }
+
+    @Override
+    public ApiResponse<Users> changePassword(ChangePasswordRequest changePasswordRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomServiceException("Not logged in yet", HttpStatus.UNAUTHORIZED);
+        }
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Users users = usersRepository.findByIdAndIsActive(userDetails.getId(), true);
+        if (users == null) {
+            throw new CustomServiceException("User not found", HttpStatus.NOT_FOUND);
+        }
+        String oldPassword = users.getPassword();
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), oldPassword)) {
+            throw new CustomServiceException("Old password does not match", HttpStatus.CONFLICT);
+        }
+        String validationError = validateNewPassword(changePasswordRequest.getNewPassword());
+
+        if (validationError != null) {
+            throw new CustomServiceException(validationError, HttpStatus.BAD_REQUEST);
+        }
+
+        String newHashedPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
+        users.setPassword(newHashedPassword);
+        usersRepository.save(users);
+        return new ApiResponse<>(200, "Password changed successfully", null);
+    }
+
+    private String validateNewPassword(String password) {
+        // Regex for each condition
+        final String LENGTH_REGEX = ".{8,20}";
+        final String LOWERCASE_REGEX = ".*[a-z].*";
+        final String UPPERCASE_REGEX = ".*[A-Z].*";
+        final String DIGIT_REGEX = ".*\\d.*";
+        final String SPECIAL_CHAR_REGEX = ".*[^a-zA-Z0-9].*";
+
+        // Check the length
+        if (!password.matches(LENGTH_REGEX)) {
+            return "Password must be between 8 and 20 characters long.";
+        }
+
+        // Check lowercase
+        if (!password.matches(LOWERCASE_REGEX)) {
+            return "Password must contain at least one lowercase letter (a-z).";
+        }
+
+        // Check uppercase
+        if (!password.matches(UPPERCASE_REGEX)) {
+            return "Password must contain at least one uppercase letter (A-Z).";
+        }
+
+        // Check number
+        if (!password.matches(DIGIT_REGEX)) {
+            return "Password must contain at least one digit (0-9).";
+        }
+
+        // Check for special characters
+        if (!password.matches(SPECIAL_CHAR_REGEX)) {
+            return "Password must contain at least one special character (e.g., !@#$%^&*).";
+        }
+
+        // If all conditions are satisfied
+        return null;
     }
 }

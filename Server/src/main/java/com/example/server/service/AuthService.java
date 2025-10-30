@@ -1,6 +1,7 @@
 package com.example.server.service;
 
 import com.example.server.model.Users;
+import com.example.server.request.ChangePasswordRequest;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.response.ApiResponse;
@@ -16,4 +17,6 @@ public interface AuthService {
     ApiResponse<JwtResponse> login(LoginRequest loginRequest);
 
     ApiResponse<UsersDetailsResponse> getPrincipalFromContext();
+
+    ApiResponse<Users> changePassword(ChangePasswordRequest changePasswordRequest);
 }
