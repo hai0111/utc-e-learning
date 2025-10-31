@@ -164,9 +164,9 @@ public class CoursesServiceImpl implements CoursesService {
         if (courses == null) {
             throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
         }
-        if (checkRole(authentication).equals(Role.ADMIN)) {
+        if (checkRole(authentication).equals(Role.ADMIN) || checkRole(authentication).equals(Role.INSTRUCTOR)) {
             courses.setIsActive(false);
-        } else if (checkRole(authentication).equals(Role.INSTRUCTOR) || checkRole(authentication).equals(Role.STUDENT)) {
+        } else if (checkRole(authentication).equals(Role.STUDENT)) {
             throw new CustomServiceException("Cannot hide course", HttpStatus.FORBIDDEN);
         }
         Courses savedCourse = coursesRepository.save(courses);
