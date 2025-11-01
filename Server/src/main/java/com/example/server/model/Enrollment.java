@@ -1,6 +1,13 @@
 package com.example.server.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +36,9 @@ public class Enrollment {
     @ManyToOne
     @JoinColumn(name = "CourseId", referencedColumnName = "Id")
     private Courses course;
+
+    @Column(name = "IsActive")
+    private Boolean isActive;
 
     @Column(name = "EnrolledAt")
     private Date enrolledAt;
