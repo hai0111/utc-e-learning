@@ -264,4 +264,32 @@ public class CoursesServiceImpl implements CoursesService {
         enrollmentRepository.saveAll(listEnrollments);
         return new ApiResponse<>(200, "Add student successfully", null);
     }
+
+    @Override
+    public ApiResponse<Void> removeStudentFromCourse(UUID courseId, UUID studentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        if (checkRole(authentication).equals(Role.STUDENT)) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        }
+        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
+        if (courses == null) {
+            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
+        }
+
+        if (!courses.getUsers().getId().equals(userDetails.getId())) {
+            throw new CustomServiceException("This account does not manage this course", HttpStatus.FORBIDDEN);
+        }
+        Users users = usersRepository.findByIdAndIsActive(studentId, true);
+        if (users == null) {
+            throw new CustomServiceException("This student does not exist.", HttpStatus.NOT_FOUND);
+        }
+        Enrollment enrollment = enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId);
+        if (enrollment == null) {
+            throw new CustomServiceException("This student is not in this course", HttpStatus.NOT_FOUND);
+        }
+        enrollment.setIsActive(false);
+        enrollmentRepository.save(enrollment);
+        return new ApiResponse<>(200, "Remove student successfully", null);
+    }
 }

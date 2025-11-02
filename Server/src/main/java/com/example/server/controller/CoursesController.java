@@ -63,4 +63,9 @@ public class CoursesController {
     public ResponseEntity<?> addStudentToCourse(@PathVariable UUID courseId, @RequestParam List<UUID> studentIds) {
         return ResponseEntity.ok(coursesService.addStudentToCourse(courseId, studentIds));
     }
+
+    @PutMapping("/{courseId}/remove-student-from-course/{studentId}")
+    public ResponseEntity<?> removeStudentFromCourse(@PathVariable UUID courseId, @PathVariable UUID studentId) {
+        return ResponseEntity.ok(coursesService.removeStudentFromCourse(courseId, studentId));
+    }
 }
