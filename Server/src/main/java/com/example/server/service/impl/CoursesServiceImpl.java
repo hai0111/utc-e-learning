@@ -13,6 +13,7 @@ import com.example.server.repository.EnrollmentRepository;
 import com.example.server.repository.UsersRepository;
 import com.example.server.request.CoursesRequest;
 import com.example.server.response.ApiResponse;
+import com.example.server.response.CourseResponse;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.CoursesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,16 +59,20 @@ public class CoursesServiceImpl implements CoursesService {
     }
 
     @Override
-    public Page<CoursesDto> getPageCourses(int page, int size) {
+    public ApiResponse<List<CoursesDto>> getPageCourses(int page, int size) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Pageable pageable = PageRequest.of(page, size);
+        Page<CoursesDto> pageCourse;
         if (checkRole(authentication).equals(Role.ADMIN)) {
-            return coursesRepository.findAllCourse(pageable);
+            pageCourse = coursesRepository.findAllCourse(pageable);
+            return new ApiResponse<>(200, "Success", pageCourse.getContent());
         } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
-            return coursesRepository.findAllCourseByInstructor(pageable, userDetails.getId());
+            pageCourse = coursesRepository.findAllCourseByInstructor(pageable, userDetails.getId());
+            return new ApiResponse<>(200, "Success", pageCourse.getContent());
         } else {
-            return coursesRepository.findAllCourseByStudent(pageable, userDetails.getId());
+            pageCourse = coursesRepository.findAllCourseByStudent(pageable, userDetails.getId());
+            return new ApiResponse<>(200, "Success", pageCourse.getContent());
         }
     }
 
@@ -84,73 +89,41 @@ public class CoursesServiceImpl implements CoursesService {
             coursesDto = coursesRepository.findCourseByIdAndStudentId(courseId, userDetails.getId());
         }
         if (coursesDto == null) {
-            return new ApiResponse<>(200, "No data", coursesDto);
+            throw new CustomServiceException("No data", HttpStatus.NOT_FOUND);
         }
-        return new ApiResponse<>(200, "OK", coursesDto);
+        return new ApiResponse<>(200, "Success", coursesDto);
     }
 
     @Override
-    public ApiResponse<Courses> createCourse(CoursesRequest coursesRequest) {
-        Users users = usersRepository.findByIdAndIsActive(coursesRequest.getUserId(), true);
+    public ApiResponse<CourseResponse> createCourse(CoursesRequest coursesRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Users users = usersRepository.findByIdAndIsActive(userDetails.getId(), true);
         if (users == null) {
             throw new CustomServiceException("User does not exist", HttpStatus.BAD_REQUEST);
         }
         if (users.getRole().equals(Role.STUDENT)) {
             throw new CustomServiceException("This user is not an instructor", HttpStatus.FORBIDDEN);
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Courses courses = new Courses();
-        if (checkRole(authentication).equals(Role.ADMIN)) {
+        if (checkRole(authentication).equals(Role.ADMIN) && coursesRequest.getUserId().toString().isEmpty()) {
             courses.setUsers(Users.builder().id(coursesRequest.getUserId()).build());
-            courses.setIsActive(coursesRequest.getIsActive());
         } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
             courses.setUsers(Users.builder().id(userDetails.getId()).build());
-            courses.setIsActive(true);
         }
+        courses.setIsActive(coursesRequest.getIsActive());
         courses.setTitle(coursesRequest.getTitle());
         courses.setDescription(coursesRequest.getDescription());
         courses.setIsActive(coursesRequest.getIsActive());
         courses.setCreatedAt(new Date());
         courses.setUpdatedAt(new Date());
         Courses savedCourse = coursesRepository.save(courses);
-        return new ApiResponse<>(200, "Create course successfully", savedCourse);
+        CourseResponse courseResponse = CourseResponse.fromEntityToResponse(savedCourse, userDetails.getName());
+        return new ApiResponse<>(200, "Create course successfully", courseResponse);
     }
 
     @Override
-    public ApiResponse<Courses> editCourse(CoursesRequest coursesRequest, UUID courseId) {
-        Users users = usersRepository.findByIdAndIsActive(coursesRequest.getUserId(), true);
-        if (users == null) {
-            throw new CustomServiceException("User does not exist", HttpStatus.BAD_REQUEST);
-        }
-        if (users.getRole().equals(Role.STUDENT)) {
-            throw new CustomServiceException("This is not an instructor", HttpStatus.FORBIDDEN);
-        }
-        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
-        if (courses == null) {
-            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
-        }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        if (checkRole(authentication).equals(Role.ADMIN)) {
-            courses.setUsers(Users.builder().id(coursesRequest.getUserId()).build());
-            courses.setIsActive(coursesRequest.getIsActive());
-        } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
-            if (courses.getUsers().getId().equals(userDetails.getId())) {
-                throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
-            }
-            courses.setUsers(Users.builder().id(userDetails.getId()).build());
-            courses.setIsActive(true);
-        }
-        courses.setTitle(coursesRequest.getTitle());
-        courses.setDescription(coursesRequest.getDescription());
-        courses.setUpdatedAt(new Date());
-        Courses savedCourse = coursesRepository.save(courses);
-        return new ApiResponse<>(200, "Update course successfully", savedCourse);
-    }
-
-    @Override
-    public ApiResponse<Courses> hiddenCourse(UUID courseId) {
+    public ApiResponse<CourseResponse> editCourse(CoursesRequest coursesRequest, UUID courseId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Users users = usersRepository.findByIdAndIsActive(userDetails.getId(), true);
@@ -165,16 +138,24 @@ public class CoursesServiceImpl implements CoursesService {
             throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
         }
         if (checkRole(authentication).equals(Role.ADMIN)) {
-            courses.setIsActive(false);
-        } else if (checkRole(authentication).equals(Role.INSTRUCTOR) || checkRole(authentication).equals(Role.STUDENT)) {
-            throw new CustomServiceException("Cannot hide course", HttpStatus.FORBIDDEN);
+            courses.setUsers(Users.builder().id(coursesRequest.getUserId()).build());
+        } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
+            if (!courses.getUsers().getId().equals(userDetails.getId())) {
+                throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+            }
+            courses.setUsers(Users.builder().id(userDetails.getId()).build());
         }
+        courses.setIsActive(coursesRequest.getIsActive());
+        courses.setTitle(coursesRequest.getTitle());
+        courses.setDescription(coursesRequest.getDescription());
+        courses.setUpdatedAt(new Date());
         Courses savedCourse = coursesRepository.save(courses);
-        return new ApiResponse<>(200, "Update course successfully", savedCourse);
+        CourseResponse courseResponse = CourseResponse.fromEntityToResponse(savedCourse, userDetails.getName());
+        return new ApiResponse<>(200, "Update course successfully", courseResponse);
     }
 
     @Override
-    public Page<StudentDto> getPageStudentsOfCourse(int page, int size, UUID courseId) {
+    public ApiResponse<List<StudentDto>> getPageStudentsOfCourse(int page, int size, UUID courseId) {
         Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
         if (courses == null) {
             throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
@@ -193,11 +174,12 @@ public class CoursesServiceImpl implements CoursesService {
             throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
         }
         Pageable pageable = PageRequest.of(page, size);
-        return usersRepository.findAllStudentsOfCourse(courseId, pageable);
+        Page<StudentDto> result = usersRepository.findAllStudentsOfCourse(courseId, pageable);
+        return new ApiResponse<>(200, "Success", result.getContent());
     }
 
     @Override
-    public Page<StudentDto> getPageStudentsNotCourse(int page, int size, UUID courseId) {
+    public ApiResponse<List<StudentDto>> getPageStudentsNotCourse(int page, int size, UUID courseId) {
         Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
         if (courses == null) {
             throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
@@ -210,7 +192,8 @@ public class CoursesServiceImpl implements CoursesService {
             throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
         }
         Pageable pageable = PageRequest.of(page, size);
-        return usersRepository.findAllStudentsNotCourse(courseId, userDetails.getId(), pageable);
+        Page<StudentDto> result = usersRepository.findAllStudentsNotCourse(courseId, userDetails.getId(), pageable);
+        return new ApiResponse<>(200, "Success", result.getContent());
     }
 
     @Override
@@ -257,6 +240,7 @@ public class CoursesServiceImpl implements CoursesService {
             Enrollment enrollment = new Enrollment();
             enrollment.setUsers(Users.builder().id(studentId).build());
             enrollment.setEnrolledAt(new Date());
+            enrollment.setIsActive(true);
             enrollment.setCourse(Courses.builder().id(courseId).build());
             listEnrollments.add(enrollment);
         }
