@@ -1,5 +1,7 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-  const auth = useAuth();
-  auth.role = E_ROLES.INSTRUCTOR;
-  if (!auth.role && to.name !== "login") return navigateTo("/login");
+import Cookies from "js-cookie";
+
+export default defineNuxtRouteMiddleware(async (to, from) => {
+  const jwt = Cookies.get("jwt");
+
+  if (!jwt && to.name !== "login") return navigateTo("/login");
 });

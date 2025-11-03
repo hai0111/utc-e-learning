@@ -16,6 +16,7 @@
             class="mt-1"
             variant="outlined"
             density="compact"
+            @keydown.enter="submit"
           />
         </label>
 
@@ -27,6 +28,7 @@
             type="password"
             variant="outlined"
             density="compact"
+            @keydown.enter="submit"
           />
         </label>
 
@@ -45,7 +47,9 @@
 </template>
 
 <script setup lang="ts">
-import LoginService from "~/services/login.service";
+import Cookies from "js-cookie";
+import { toast } from "vue3-toastify";
+import AuthService from "~/services/auth.service";
 import type { ILoginBody } from "~/types/auth";
 
 definePageMeta({
@@ -57,13 +61,19 @@ const formValues = ref<ILoginBody>({
   password: "",
 });
 
+const { query } = useRoute();
+
 const submit = async () => {
   try {
-    const res = await LoginService.submit(formValues.value);
+    const res = await AuthService.login(formValues.value);
 
     // TODO: Handle API
-    console.log(res);
+    Cookies.set("jwt", res.data.jwt);
+    await navigateTo((query.back as string) ?? "/");
   } catch (err) {
+    toast("Account or password is incorrect", {
+      type: "error",
+    });
     console.error(err);
   }
 };

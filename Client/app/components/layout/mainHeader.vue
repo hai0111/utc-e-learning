@@ -4,7 +4,7 @@
 
     <h1 class="text-2xl font-extrabold grow">My E-Learning</h1>
 
-    <span>Nguyễn Văn A</span>
+    <span>{{ auth.userInfo?.name }}</span>
 
     <v-menu transition="slide-y-transition" :offset="10">
       <template #activator="{ props }">
@@ -18,7 +18,7 @@
       </template>
 
       <v-list density="compact" class="py-0">
-        <v-list-item link to="/login" append-icon="mdi-logout">
+        <v-list-item link @click="auth.logout()" append-icon="mdi-logout">
           <v-list-item-title>Logout</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -26,6 +26,8 @@
   </v-card>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const auth = useAuth();
+</script>
 
 <style scoped></style>

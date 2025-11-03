@@ -17,3 +17,15 @@ export function toLookup<T extends Record<string, any>, K extends keyof T>(
     return acc;
   }, new Map<T[K], T>());
 }
+
+export const clearAllCookies = () => {
+  const cookies = document.cookie.split(";");
+
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i]!.trim();
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+};
