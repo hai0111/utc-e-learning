@@ -1,4 +1,5 @@
 import BaseService from "~/services/base.service";
+import type { ILoginResponse, IUserInfo } from "~/types/auth";
 
 class Auth extends BaseService {
   constructor() {
@@ -6,11 +7,11 @@ class Auth extends BaseService {
   }
 
   login(body: any) {
-    return this.instance.post("/login", body);
+    return this.instance.post<ILoginResponse>("/login", body);
   }
 
-  getUserInformation(body: any) {
-    return this.instance.post("/login", body);
+  getUserInformation() {
+    return this.instance.get<IUserInfo>("/principal");
   }
 }
 

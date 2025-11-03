@@ -13,7 +13,9 @@ const auth = useAuth();
 const props = defineProps<{ roles?: E_ROLES[] }>();
 
 const isValid = computed(
-  () => auth.role && (props.roles ? props.roles.includes(auth.role) : true)
+  () =>
+    auth.userInfo?.roleName &&
+    (props.roles ? props.roles.includes(auth.userInfo?.roleName) : true)
 );
 </script>
 

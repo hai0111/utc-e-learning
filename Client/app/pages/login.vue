@@ -45,7 +45,9 @@
 </template>
 
 <script setup lang="ts">
-import LoginService from "~/services/login.service";
+import Cookies from "js-cookie";
+import { toast } from "vue3-toastify";
+import AuthService from "~/services/auth.service";
 import type { ILoginBody } from "~/types/auth";
 
 definePageMeta({
@@ -57,13 +59,17 @@ const formValues = ref<ILoginBody>({
   password: "",
 });
 
+const { query } = useRoute();
+
 const submit = async () => {
   try {
-    const res = await LoginService.submit(formValues.value);
+    const res = await AuthService.login(formValues.value);
 
     // TODO: Handle API
-    console.log(res);
+    Cookies.set("jwt", res.data.jwt);
+    navigateTo((query.back as string) ?? "/");
   } catch (err) {
+    toast("Account or password is incorrect");
     console.error(err);
   }
 };

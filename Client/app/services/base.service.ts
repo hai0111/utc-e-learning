@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import axios, { type AxiosInstance, type AxiosResponse } from "axios";
 
 class BaseService {
@@ -7,6 +8,14 @@ class BaseService {
     this.instance = axios.create({
       baseURL,
       headers: { "Content-Type": "application/json" },
+    });
+
+    this.instance.interceptors.request.use((config) => {
+      const token = Cookies.get("jwt");
+      if (token) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
+      return config;
     });
 
     this.instance.interceptors.response.use(
