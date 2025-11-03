@@ -26,7 +26,7 @@ public class CoursesController {
 
     @GetMapping()
     public ResponseEntity<?> getListCourses(@RequestParam int page, @RequestParam int size) {
-        return ResponseEntity.ok(coursesService.getPageCourses(page, size).getContent());
+        return ResponseEntity.ok(coursesService.getPageCourses(page, size));
     }
 
     @GetMapping("/{courseId}")
@@ -44,19 +44,14 @@ public class CoursesController {
         return ResponseEntity.ok(coursesService.editCourse(coursesRequest, courseId));
     }
 
-    @PutMapping("/hidden/{courseId}")
-    public ResponseEntity<?> editCourse(@PathVariable UUID courseId) {
-        return ResponseEntity.ok(coursesService.hiddenCourse(courseId));
-    }
-
     @GetMapping("/{courseId}/student-of-course")
     public ResponseEntity<?> getPageStudentsOfCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
-        return ResponseEntity.ok(coursesService.getPageStudentsOfCourse(page, size, courseId).getContent());
+        return ResponseEntity.ok(coursesService.getPageStudentsOfCourse(page, size, courseId));
     }
 
     @GetMapping("/{courseId}/student-not-course")
     public ResponseEntity<?> getPageStudentsNotCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
-        return ResponseEntity.ok(coursesService.getPageStudentsNotCourse(page, size, courseId).getContent());
+        return ResponseEntity.ok(coursesService.getPageStudentsNotCourse(page, size, courseId));
     }
 
     @PostMapping("/{courseId}/add-student-to-course")

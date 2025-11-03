@@ -32,7 +32,7 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             "AND u.id IN (" +
             "   SELECT DISTINCT e.users.id " +
             "   FROM Enrollment e " +
-            "   WHERE e.course.id = :courseId" +
+            "   WHERE e.course.id = :courseId AND e.isActive = true" +
             ")")
     Page<StudentDto> findAllStudentsOfCourse(UUID courseId, Pageable pageable);
 
@@ -42,7 +42,7 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             "AND u.id IN (" +
             "   SELECT DISTINCT e.users.id " +
             "   FROM Enrollment e " +
-            "   WHERE e.course.id = :courseId" +
+            "   WHERE e.course.id = :courseId AND e.isActive = true" +
             ")")
     List<UUID> findAllStudentIdsOfCourse(UUID courseId);
 
@@ -54,7 +54,7 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             "AND u.id NOT IN (" +
             "   SELECT DISTINCT e.users.id " +
             "   FROM Enrollment e " +
-            "   WHERE e.course.id = :courseId" +
+            "   WHERE e.course.id = :courseId AND e.isActive = true" +
             ")")
     Page<StudentDto> findAllStudentsNotCourse(UUID courseId, UUID userId, Pageable pageable);
 

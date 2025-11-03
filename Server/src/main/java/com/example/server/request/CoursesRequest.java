@@ -20,6 +20,5 @@ public class CoursesRequest {
     @NotNull(message = "Is active cannot be blank")
     private Boolean isActive;
 
-    @NotNull(message = "User id cannot be blank")
     private UUID userId;
 }
