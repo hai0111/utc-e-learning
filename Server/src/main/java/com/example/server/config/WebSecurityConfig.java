@@ -6,6 +6,7 @@ import com.example.server.security.jwt.JwtTokenFilter;
 import com.example.server.security.service.CustomAccessDeniedHandler;
 import com.example.server.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -31,6 +38,9 @@ public class WebSecurityConfig {
 
     @Autowired
     private JwtEntryPoint jwtEntryPoint;
+
+    @Value("${app.cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
@@ -61,8 +71,21 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(req -> {
+        httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(req -> {
                     //Testing purpose
                     req.requestMatchers("/register", "/login").permitAll();
 
@@ -73,14 +96,6 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(daoAuthenticationProvider())
                 .addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        httpSecurity.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtEntryPoint)).
-        logout(logout ->
-                logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-        );
 
         return httpSecurity.build();
     }
