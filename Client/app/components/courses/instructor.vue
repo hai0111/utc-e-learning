@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import type { DataTableHeader } from "vuetify";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import CourseService from "~/services/course.service";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -64,6 +65,8 @@ const items = ref([
     numberOfStudents: 30,
   },
 ]);
+
+const { data } = useAsyncData("courses", () => CourseService.getList());
 </script>
 
 <style scoped></style>

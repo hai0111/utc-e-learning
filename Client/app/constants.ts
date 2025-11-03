@@ -12,3 +12,8 @@ export const ACTIVE_ITEMS: IColorItem[] = [
     color: "#333",
   },
 ];
+
+export const DEFAULT_PAGER = {
+  page: 0,
+  size: 10,
+};
