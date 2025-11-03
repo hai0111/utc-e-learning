@@ -24,4 +24,6 @@ public interface CoursesService {
     ApiResponse<List<StudentDto>> getPageStudentsNotCourse(int page, int size, UUID courseId);
 
     ApiResponse<Void> addStudentToCourse(UUID courseId, List<UUID> studentIds);
+
+    ApiResponse<Void> removeStudentFromCourse(UUID courseId, UUID studentId);
 }
