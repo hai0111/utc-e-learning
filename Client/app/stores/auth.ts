@@ -31,6 +31,7 @@ export const useAuth = defineStore("auth", {
     },
 
     async logout(backPath?: string) {
+      this.userInfo = null;
       clearAllCookies();
       await navigateTo(`/login${backPath ? `?back=${backPath}` : ""}`);
     },

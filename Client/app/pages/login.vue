@@ -16,6 +16,7 @@
             class="mt-1"
             variant="outlined"
             density="compact"
+            @keydown.enter="submit"
           />
         </label>
 
@@ -27,6 +28,7 @@
             type="password"
             variant="outlined"
             density="compact"
+            @keydown.enter="submit"
           />
         </label>
 
@@ -67,9 +69,11 @@ const submit = async () => {
 
     // TODO: Handle API
     Cookies.set("jwt", res.data.jwt);
-    navigateTo((query.back as string) ?? "/");
+    await navigateTo((query.back as string) ?? "/");
   } catch (err) {
-    toast("Account or password is incorrect");
+    toast("Account or password is incorrect", {
+      type: "error",
+    });
     console.error(err);
   }
 };
