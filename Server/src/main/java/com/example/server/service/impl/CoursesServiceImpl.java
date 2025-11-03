@@ -59,20 +59,35 @@ public class CoursesServiceImpl implements CoursesService {
     }
 
     @Override
-    public ApiResponse<List<CoursesDto>> getPageCourses(int page, int size) {
+    public ApiResponse<List<CourseResponse>> getPageCourses(int page, int size) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Pageable pageable = PageRequest.of(page, size);
         Page<CoursesDto> pageCourse;
+        List<CourseResponse> courseResponseList = new ArrayList<>();
         if (checkRole(authentication).equals(Role.ADMIN)) {
             pageCourse = coursesRepository.findAllCourse(pageable);
-            return new ApiResponse<>(200, "Success", pageCourse.getContent());
+            courseResponseList = CourseResponse.fromDtoToResponseList(pageCourse.getContent(), pageCourse.getTotalElements());
+            return new ApiResponse<>(200, "Success", courseResponseList);
         } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
             pageCourse = coursesRepository.findAllCourseByInstructor(pageable, userDetails.getId());
-            return new ApiResponse<>(200, "Success", pageCourse.getContent());
+            for (CoursesDto courseDto : pageCourse.getContent()) {
+                CourseResponse courseResponse = new CourseResponse();
+                courseResponse.setId(courseDto.getId());
+                courseResponse.setTitle(courseDto.getTitle());
+                courseResponse.setDescription(courseDto.getDescription());
+                courseResponse.setIsActive(courseDto.getIsActive());
+                courseResponse.setCreatedAt(courseDto.getCreatedAt());
+                courseResponse.setUpdatedAt(courseDto.getUpdatedAt());
+                courseResponse.setInstructor(courseDto.getInstructor());
+                courseResponse.setTotalStudents(usersRepository.totalStudentsInCourse(courseDto.getId()));
+                courseResponseList.add(courseResponse);
+            }
+            return new ApiResponse<>(200, "Success", courseResponseList);
         } else {
             pageCourse = coursesRepository.findAllCourseByStudent(pageable, userDetails.getId());
-            return new ApiResponse<>(200, "Success", pageCourse.getContent());
+            courseResponseList = CourseResponse.fromDtoToResponseList(pageCourse.getContent(), pageCourse.getTotalElements());
+            return new ApiResponse<>(200, "Success", courseResponseList);
         }
     }
 
@@ -106,8 +121,8 @@ public class CoursesServiceImpl implements CoursesService {
             throw new CustomServiceException("This user is not an instructor", HttpStatus.FORBIDDEN);
         }
         Courses courses = new Courses();
-        if (checkRole(authentication).equals(Role.ADMIN) && coursesRequest.getUserId().toString().isEmpty()) {
-            courses.setUsers(Users.builder().id(coursesRequest.getUserId()).build());
+        if (checkRole(authentication).equals(Role.ADMIN)) {
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
         } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
             courses.setUsers(Users.builder().id(userDetails.getId()).build());
         }
@@ -138,7 +153,7 @@ public class CoursesServiceImpl implements CoursesService {
             throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
         }
         if (checkRole(authentication).equals(Role.ADMIN)) {
-            courses.setUsers(Users.builder().id(coursesRequest.getUserId()).build());
+            throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
         } else if (checkRole(authentication).equals(Role.INSTRUCTOR)) {
             if (!courses.getUsers().getId().equals(userDetails.getId())) {
                 throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);

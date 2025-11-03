@@ -46,6 +46,16 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             ")")
     List<UUID> findAllStudentIdsOfCourse(UUID courseId);
 
+    @Query("SELECT COUNT(u.id) " +
+            "FROM Users u " +
+            "WHERE u.role = 'STUDENT' AND u.isActive = true " +
+            "AND u.id IN (" +
+            "   SELECT DISTINCT e.users.id " +
+            "   FROM Enrollment e " +
+            "   WHERE e.course.id = :courseId AND e.isActive = true" +
+            ")")
+    Long totalStudentsInCourse(UUID courseId);
+
     @Query("SELECT u.code as code, " +
             "u.name as name, " +
             "u.email as email " +
