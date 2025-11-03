@@ -4,7 +4,7 @@
 
     <h1 class="text-2xl font-extrabold grow">My E-Learning</h1>
 
-    <span>Nguyễn Văn A</span>
+    <span>{{ auth.userInfo?.name }}</span>
 
     <v-menu transition="slide-y-transition" :offset="10">
       <template #activator="{ props }">
