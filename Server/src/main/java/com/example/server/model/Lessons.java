@@ -44,7 +44,7 @@ public class Lessons {
     private String url;
 
     @Column(name = "IsActive")
-    private String isActive;
+    private Boolean isActive;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "lessonType")
