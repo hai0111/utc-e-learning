@@ -111,7 +111,12 @@
           </v-card-text>
         </v-card>
       </div>
-      <v-btn block class="col-span-2 bg-blue-600 text-white mt-3" size="40">
+      <v-btn
+        block
+        class="col-span-2 bg-blue-600 text-white mt-3"
+        size="40"
+        @click="$router.push(`/courses/${$route.params.id}/learn`)"
+      >
         Start learning
       </v-btn>
     </div>
