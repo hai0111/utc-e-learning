@@ -54,8 +54,13 @@
           <v-switch hide-details color="primary" v-model="item.isActive" />
         </template>
 
-        <template #item.url>
-          <v-btn variant="text" icon="mdi-eye" color="blue" />
+        <template #item.url="{ item }">
+          <v-btn
+            variant="text"
+            icon="mdi-eye"
+            color="blue"
+            @click="openPreviewModal(item)"
+          />
         </template>
 
         <template #item.actions="{ item }">
@@ -90,13 +95,27 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="previewModal.isOpen" width="max-content">
+    <v-card>
+      <v-card-text>
+        <preview-source
+          v-if="previewModal.lesson"
+          :type="previewModal.lesson.type"
+          src="/Chuong3_TKCoDoiThu.pdf"
+          class="h-[80vh] min-w-[1200px] max-w-[80vw]"
+        />
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { cloneDeep, isEqual } from "lodash";
 import Sortable from "sortablejs";
 import type { VDataTable } from "vuetify/components";
-import type { ILesson } from "~/types/lesson";
+import { ELessonTypes, type ILesson } from "~/types/lesson";
+
 const lessonHeaders = [
   {
     key: "orderIndex",
@@ -131,17 +150,17 @@ const lessonHeaders = [
 const lessonTypeOptions = [
   {
     title: "Video",
-    value: "video",
+    value: ELessonTypes.VIDEO,
     color: "blue",
   },
   {
     title: "PDF",
-    value: "pdf",
+    value: ELessonTypes.DOCUMENT,
     color: "purple",
   },
   {
     title: "Quiz",
-    value: "quiz",
+    value: ELessonTypes.QUIZ,
     color: "green",
   },
 ];
@@ -151,9 +170,9 @@ const lessonsDataOriginal = ref<ILesson[]>(
     const type = lessonTypeOptions[i % lessonTypeOptions.length]!.value;
 
     const titles = {
-      video: `Lesson ${i + 1}: Introduction to JavaScript`,
-      pdf: `Lesson ${i + 1}: Advanced Concepts`,
-      quiz: `Lesson ${i + 1}: Practice Quiz`,
+      [ELessonTypes.VIDEO]: `Lesson ${i + 1}: Introduction to JavaScript`,
+      [ELessonTypes.DOCUMENT]: `Lesson ${i + 1}: Advanced Concepts`,
+      [ELessonTypes.QUIZ]: `Lesson ${i + 1}: Practice Quiz`,
     };
 
     return {
@@ -169,10 +188,6 @@ const lessonsDataOriginal = ref<ILesson[]>(
 
 const lessonsData = ref(cloneDeep(lessonsDataOriginal.value));
 
-const isDifferent = computed(() => {
-  return !isEqual(lessonsData.value, lessonsDataOriginal.value);
-});
-
 const searchLessonValue = ref<string>("");
 
 const lessons = computed(() => {
@@ -181,6 +196,11 @@ const lessons = computed(() => {
   );
 });
 
+const isDifferent = computed(() => {
+  return !isEqual(lessonsData.value, lessonsDataOriginal.value);
+});
+
+// SORT ============================================
 const lessonTable = ref<InstanceType<typeof VDataTable>>();
 
 const cancelEditLessons = () => {
@@ -205,6 +225,7 @@ onMounted(() => {
   return;
 });
 
+// DELETE ============================================
 const deleteModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
   isOpen: false,
   lesson: null,
@@ -213,6 +234,18 @@ const deleteModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
 const openDeleteModal = (data: ILesson) => {
   deleteModal.value.lesson = data;
   deleteModal.value.isOpen = true;
+};
+
+// PREVIEW ============================================
+
+const previewModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
+  isOpen: false,
+  lesson: null,
+});
+
+const openPreviewModal = (data: ILesson) => {
+  previewModal.value.lesson = data;
+  previewModal.value.isOpen = true;
 };
 </script>
 
