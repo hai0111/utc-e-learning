@@ -64,7 +64,17 @@
         </template>
 
         <template #item.actions="{ item }">
-          <v-btn variant="text" icon color="blue" size="30">
+          <v-btn
+            variant="text"
+            icon
+            color="blue"
+            size="30"
+            @click="
+              $router.push(
+                `/courses/${$route.params.id}/lessons/${item.id}/edit`
+              )
+            "
+          >
             <v-icon icon="mdi-pencil" size="18" />
           </v-btn>
 
