@@ -72,22 +72,29 @@
 <script setup lang="ts">
 import { cloneDeep } from "lodash";
 import { ACTIVE_ITEMS } from "~/constants";
+import CourseService from "~/services/course.service";
+import type { ICourse } from "~/types/course";
+
+const { params } = useRoute();
+
+const { data } = useAsyncData(
+  `course/${params.id as string}`,
+  () => CourseService.detail((params.id as string) ?? ""),
+  { default: () => ({}) }
+);
 
 const isEditBasicInfo = ref(false);
 
-const basicInfoOrigin = ref({
-  title: "Ứng dụng phần mềm",
-  description:
-    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium non consequuntur voluptatum alias dolorem, dolor maiores debitis incidunt rem, rerum laborum ea ullam. Sint, perspiciatis? Suscipit ex placeat repudiandae provident nam error totam quis. Reprehenderit aspernatur voluptatibus aperiam corporis tenetur quo esse quidem magnam autem inventore pariatur dolores animi non temporibus perspiciatis corrupti quae sapiente similique, vitae eligendi tempore eveniet! Quis, officia incidunt, ullam libero, asperiores soluta sunt itaque enim vitae hic illo pariatur ducimus neque magnam necessitatibus dicta sequi magni tempora nulla impedit! Inventore error numquam fugit sunt accusamus nihil excepturi, aliquam vitae pariatur ab in voluptate tenetur maiores voluptas animi doloremque dolor delectus debitis odit ad nostrum architecto quaerat. Eligendi perspiciatis neque delectus veritatis voluptas magnam, tempora",
-  isActive: true,
-});
-
-const basicInfo = ref(cloneDeep(basicInfoOrigin.value));
+const basicInfo = ref<Partial<ICourse>>({});
 
 const onCancelEdit = () => {
-  basicInfo.value = cloneDeep(basicInfoOrigin.value);
+  basicInfo.value = cloneDeep(data.value);
   isEditBasicInfo.value = false;
 };
+
+watch(data, (val) => {
+  basicInfo.value = cloneDeep(val);
+});
 </script>
 
 <style scoped></style>

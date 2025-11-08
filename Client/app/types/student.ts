@@ -1,5 +1,13 @@
 export interface IStudent {
   id: string;
-  studentCode: string;
-  fullName: string;
+  name: string;
+  email: string;
+  code: string;
+}
+
+export interface IStudentNotEnrolled {
+  id: string;
+  name: string;
+  email: string;
+  code: string;
 }

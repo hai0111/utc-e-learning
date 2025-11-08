@@ -1,12 +1,61 @@
 import { DEFAULT_PAGER } from "~/constants";
 import BaseService from "~/services/base.service";
-import type { ICourseForm } from "~/types/course";
+import type { ICourse, ICourseForm } from "~/types/course";
+import type { IStudentNotEnrolled } from "~/types/student";
 
 class Course extends BaseService {
-  getList(params = DEFAULT_PAGER) {
-    return this.instance.get("/courses", {
+  async getList(params = DEFAULT_PAGER) {
+    const res = await this.instance.get<ICourse[]>("/courses", {
       params,
     });
+
+    return res.data;
+  }
+
+  async detail(uuid: string) {
+    const res = await this.instance.get<ICourse>(`/courses/${uuid}`);
+
+    return res.data;
+  }
+
+  async getStudents(uuid: string, params = DEFAULT_PAGER) {
+    const res = await this.instance.get<IStudentNotEnrolled[]>(
+      `/courses/${uuid}/student-of-course`,
+      { params }
+    );
+
+    return res.data;
+  }
+
+  async getStudentsNotEnrolled(uuid: string, params = DEFAULT_PAGER) {
+    const res = await this.instance.get<IStudentNotEnrolled[]>(
+      `/courses/${uuid}/student-not-course`,
+      { params }
+    );
+
+    return res.data;
+  }
+
+  async enrollStudents(uuid: string, studentIds: string[]) {
+    const res = await this.instance.post<IStudentNotEnrolled[]>(
+      `/courses/${uuid}/add-student-to-course`,
+      null,
+      {
+        params: {
+          studentIds,
+        },
+      }
+    );
+
+    return res.data;
+  }
+
+  async removeStudent(courseId: string, studentId: string) {
+    const res = await this.instance.post(
+      `/courses/${courseId}/remove-student-from-course/${studentId}`
+    );
+
+    return res.data;
   }
 
   create(body: ICourseForm) {

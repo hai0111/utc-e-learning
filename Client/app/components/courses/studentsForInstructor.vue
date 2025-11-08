@@ -51,18 +51,23 @@
       <v-card-text>
         <v-icon icon="mdi-alert" color="warning" />
         Are you sure you want to unenroll
-        <strong>“{{ deleteModal.student?.fullName }}”</strong> from this course?
+        <strong>“{{ deleteModal.student?.name }}”</strong> from this course?
       </v-card-text>
       <v-card-actions>
-        <group-btn-form @click:cancel="deleteModal.isOpen = false" />
+        <group-btn-form
+          @click:cancel="deleteModal.isOpen = false"
+          @click:save="handleDelete"
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
+import { toast } from "vue3-toastify";
 import type { DataTableHeader } from "vuetify";
 import type { VDataTable } from "vuetify/components";
+import CourseService from "~/services/course.service";
 import type { IStudent } from "~/types/student";
 
 const headers: DataTableHeader[] = [
@@ -73,12 +78,12 @@ const headers: DataTableHeader[] = [
   },
 
   {
-    key: "studentCode",
+    key: "code",
     title: "Student Code",
   },
 
   {
-    key: "fullName",
+    key: "name",
     title: "Fullname",
   },
 
@@ -88,19 +93,21 @@ const headers: DataTableHeader[] = [
   },
 ];
 
-const studentsData = Array.from({ length: 50 }, (_, i) => ({
-  id: i.toString(),
-  studentCode: `STU${(i + 1).toString().padStart(4, "0")}`,
-  fullName: `Student ${i + 1}`,
-}));
+const { params } = useRoute();
+
+const { data } = useAsyncData(
+  `course/${params.id as string}/students`,
+  () => CourseService.getStudents((params.id as string) ?? ""),
+  { default: () => [] }
+);
 
 const searchStudentValue = ref<string>("");
 
-const students = computed<IStudent[]>(() =>
-  studentsData.filter(
+const students = computed(() =>
+  data.value.filter(
     (item) =>
-      toSlug(item.fullName).includes(toSlug(searchStudentValue.value)) ||
-      toSlug(item.studentCode).includes(toSlug(searchStudentValue.value))
+      toSlug(item.name).includes(toSlug(searchStudentValue.value)) ||
+      toSlug(item.code).includes(toSlug(searchStudentValue.value))
   )
 );
 
@@ -114,6 +121,23 @@ const deleteModal = ref<{ isOpen: boolean; student: null | IStudent }>({
 const openDeleteModal = (data: IStudent) => {
   deleteModal.value.student = data;
   deleteModal.value.isOpen = true;
+};
+
+const handleDelete = async () => {
+  if (!deleteModal.value.student) return;
+
+  try {
+    await CourseService.removeStudent(
+      params.id as string,
+      deleteModal.value.student.id
+    );
+
+    toast("Deleted successfully", { type: "success" });
+  } catch (err) {
+    toast("An error occurred", { type: "error" });
+  }
+
+  deleteModal.value.isOpen = false;
 };
 </script>
 

@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import { toast } from "vue3-toastify";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import CourseService from "~/services/course.service";
 import type { ICourseForm } from "~/types/course";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -71,9 +72,21 @@ const onSave = async () => {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  toast("Create successfully", {
-    type: "success",
-  });
+
+  try {
+    const res = await CourseService.create({
+      ...formValues.value,
+      userId: useAuth().userInfo?.uuid,
+    } as ICourseForm);
+
+    await navigateTo("/");
+
+    toast("Create successfully", {
+      type: "success",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 };
 </script>
 
