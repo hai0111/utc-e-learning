@@ -17,8 +17,9 @@
           :headers="lessonHeaders"
           show-select
           :items="students"
-          item-value="studentCode"
+          item-value="id"
           color="primary"
+          class="max-h-[500px]"
         ></v-data-table>
       </v-card-text>
 
@@ -30,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import { cloneDeep } from "lodash";
 import type { DataTableHeader } from "vuetify";
+import CourseService from "~/services/course.service";
 
 defineProps<{
   modelValue: boolean;
@@ -41,21 +42,21 @@ defineEmits<{
   (e: "update:modelValue", value: boolean): void;
 }>();
 
-const studentsData = Array.from({ length: 50 }, (_, i) => {
-  i += 50;
-  return {
-    studentCode: `STU${(i + 1).toString().padStart(4, "0")}`,
-    fullName: `Student ${i + 1}`,
-  };
-});
+const { params } = useRoute();
+
+const { data } = useAsyncData(
+  `course/${params.id as string}/student-not-course`,
+  () => CourseService.getStudentsNotEnrolled((params.id as string) ?? ""),
+  { default: () => [] }
+);
 
 const searchStudentValue = ref<string>("");
 
 const students = computed(() =>
-  studentsData.filter(
+  data.value.filter(
     (item) =>
-      toSlug(item.fullName).includes(toSlug(searchStudentValue.value)) ||
-      toSlug(item.studentCode).includes(toSlug(searchStudentValue.value))
+      toSlug(item.name).includes(toSlug(searchStudentValue.value)) ||
+      toSlug(item.code).includes(toSlug(searchStudentValue.value))
   )
 );
 
@@ -63,12 +64,12 @@ const selectedStudents = ref([]);
 
 const lessonHeaders: DataTableHeader[] = [
   {
-    key: "studentCode",
+    key: "code",
     title: "Student Code",
   },
 
   {
-    key: "fullName",
+    key: "name",
     title: "Fullname",
   },
 

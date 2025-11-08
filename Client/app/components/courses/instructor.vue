@@ -16,7 +16,7 @@
     </v-btn>
   </div>
 
-  <VDataTable :headers="headers" :items="items" disable-sort>
+  <VDataTable :headers="headers" :items="data" disable-sort>
     <template #item.index="{ index }"> {{ index + 1 }} </template>
     <template #item.title="{ item: { id, title } }">
       <NuxtLink
@@ -53,18 +53,10 @@ const headers: DataTableHeader[] = [
   },
 
   {
-    key: "numberOfStudents",
+    key: "totalStudents",
     title: "Number of students",
   },
 ];
-
-const items = ref([
-  {
-    id: 1,
-    title: "Ứng dụng phần mềm",
-    numberOfStudents: 30,
-  },
-]);
 
 const { data } = useAsyncData("courses", () => CourseService.getList());
 </script>

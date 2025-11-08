@@ -3,3 +3,14 @@ export interface ICourseForm {
   description: string;
   isActive: boolean;
 }
+
+export interface ICourse {
+  id: string;
+  description: string;
+  isActive: boolean;
+  title: string;
+  totalStudents: number;
+  updatedAt: string;
+  createdAt: string;
+  instructor: string;
+}
