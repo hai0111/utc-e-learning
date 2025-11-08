@@ -6,7 +6,7 @@
       <div>
         <div class="font-bold">Marius M.</div>
         <div class="flex items-center gap-3 mt-0.5">
-          <rating :model-value="3.6" :size="18" />
+          <rating :model-value="3.6" :size="18" style="margin-left: -3px" />
 
           <strong>a month ago</strong>
         </div>
