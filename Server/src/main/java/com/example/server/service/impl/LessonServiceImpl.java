@@ -37,7 +37,7 @@ public class LessonServiceImpl implements LessonService {
     private final UsersRepository usersRepository;
     private final CoursesRepository courseRepository;
     private final CloudinaryService cloudinaryService;
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
 
     private Role checkRole(Authentication authentication) {
         System.out.println("=== ROLE DETECTION DEBUG ===");
@@ -68,6 +68,7 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public List<LessonResponse> getListLessons(UUID courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
         Role role = checkRole(authentication);
@@ -85,6 +86,7 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public ApiResponse<LessonResponse> getLesson(UUID courseId, UUID lessonId) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             UUID currentUserId = userDetails.getId();
             Role role = checkRole(authentication);
@@ -120,6 +122,7 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public ApiResponse<Object> createLesson(LessonRequest lessonRequest, UUID courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
         Role role = checkRole(authentication);
@@ -222,6 +225,7 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
         Role role = checkRole(authentication);
@@ -293,6 +297,7 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public ApiResponse<Object> hiddenLesson(UUID courseId, UUID lessonId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
         Role role = checkRole(authentication);
@@ -329,6 +334,7 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public ApiResponse<Object> deleteLesson(UUID courseId, UUID lessonId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // Only admin can hard delete
         if (!checkRole(authentication).equals(Role.ADMIN)) {
             throw new CustomServiceException("Only admin can delete lesson", HttpStatus.FORBIDDEN);
@@ -346,6 +352,7 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public ApiResponse<BatchUpdateResponse> updateLessonBatch(UpdateLessonBatchRequest request, UUID courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
         Role role = checkRole(authentication);
