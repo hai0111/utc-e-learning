@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface CoursesService {
 
-    ApiResponse<List<CoursesDto>> getPageCourses(int page, int size);
+    ApiResponse<List<CourseResponse>> getPageCourses(int page, int size);
 
     ApiResponse<CoursesDto> getCourse(UUID courseId);
 
@@ -19,7 +19,7 @@ public interface CoursesService {
 
     ApiResponse<CourseResponse> editCourse(CoursesRequest coursesRequest, UUID courseId);
 
-    ApiResponse<List<StudentDto>> getPageStudentsOfCourse(int page, int size, UUID courseId);
+    ApiResponse<List<StudentDto>> getPageStudentsInCourse(int page, int size, UUID courseId);
 
     ApiResponse<List<StudentDto>> getPageStudentsNotCourse(int page, int size, UUID courseId);
 
