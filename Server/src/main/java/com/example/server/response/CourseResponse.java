@@ -42,20 +42,16 @@ public class CourseResponse {
         return courseResponse;
     }
 
-    public static List<CourseResponse> fromDtoToResponseList(List<CoursesDto> coursesDto, long totalStudents) {
-        List<CourseResponse> courseResponses = new ArrayList<>();
-        for (CoursesDto courseDto : coursesDto) {
-            CourseResponse courseResponse = new CourseResponse();
-            courseResponse.setId(courseDto.getId());
-            courseResponse.setTitle(courseDto.getTitle());
-            courseResponse.setDescription(courseDto.getDescription());
-            courseResponse.setIsActive(courseDto.getIsActive());
-            courseResponse.setCreatedAt(courseDto.getCreatedAt());
-            courseResponse.setUpdatedAt(courseDto.getUpdatedAt());
-            courseResponse.setInstructor(courseDto.getInstructor());
-            courseResponse.setTotalStudents(totalStudents);
-            courseResponses.add(courseResponse);
-        }
-        return courseResponses;
+    public static CourseResponse convertToCourseResponse(CoursesDto courseDto, Long totalStudents) {
+        CourseResponse courseResponse = new CourseResponse();
+        courseResponse.setId(courseDto.getId());
+        courseResponse.setTitle(courseDto.getTitle());
+        courseResponse.setDescription(courseDto.getDescription());
+        courseResponse.setIsActive(courseDto.getIsActive());
+        courseResponse.setCreatedAt(courseDto.getCreatedAt());
+        courseResponse.setUpdatedAt(courseDto.getUpdatedAt());
+        courseResponse.setInstructor(courseDto.getInstructor());
+        courseResponse.setTotalStudents(totalStudents);
+        return courseResponse;
     }
 }

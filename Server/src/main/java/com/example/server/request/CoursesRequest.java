@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class CoursesRequest {
@@ -17,4 +19,6 @@ public class CoursesRequest {
 
     @NotNull(message = "Is active cannot be blank")
     private Boolean isActive;
+
+    private UUID instructorId;
 }

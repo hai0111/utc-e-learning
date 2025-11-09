@@ -19,7 +19,7 @@ public interface CoursesService {
 
     ApiResponse<CourseResponse> editCourse(CoursesRequest coursesRequest, UUID courseId);
 
-    ApiResponse<List<StudentDto>> getPageStudentsOfCourse(int page, int size, UUID courseId);
+    ApiResponse<List<StudentDto>> getPageStudentsInCourse(int page, int size, UUID courseId);
 
     ApiResponse<List<StudentDto>> getPageStudentsNotCourse(int page, int size, UUID courseId);
 

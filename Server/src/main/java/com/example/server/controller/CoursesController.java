@@ -44,9 +44,9 @@ public class CoursesController {
         return ResponseEntity.ok(coursesService.editCourse(coursesRequest, courseId));
     }
 
-    @GetMapping("/{courseId}/student-of-course")
-    public ResponseEntity<?> getPageStudentsOfCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
-        return ResponseEntity.ok(coursesService.getPageStudentsOfCourse(page, size, courseId));
+    @GetMapping("/{courseId}/student-in-course")
+    public ResponseEntity<?> getPageStudentsInCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
+        return ResponseEntity.ok(coursesService.getPageStudentsInCourse(page, size, courseId));
     }
 
     @GetMapping("/{courseId}/student-not-course")

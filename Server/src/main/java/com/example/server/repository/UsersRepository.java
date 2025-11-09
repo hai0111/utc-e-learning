@@ -24,7 +24,8 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
 
     Users findByIdAndIsActive(UUID id, Boolean isActive);
 
-    @Query("SELECT u.code as code, " +
+    @Query("SELECT u.id as id, " +
+            "u.code as code, " +
             "u.name as name, " +
             "u.email as email " +
             "FROM Users u " +
@@ -56,7 +57,8 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             ")")
     Long totalStudentsInCourse(UUID courseId);
 
-    @Query("SELECT u.code as code, " +
+    @Query("SELECT u.id as id, " +
+            "u.code as code, " +
             "u.name as name, " +
             "u.email as email " +
             "FROM Users u " +
