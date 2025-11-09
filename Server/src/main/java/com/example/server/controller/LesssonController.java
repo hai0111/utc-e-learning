@@ -8,15 +8,21 @@ import com.example.server.response.LessonResponse;
 import com.example.server.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -41,13 +47,7 @@ public class LesssonController {
     }
 
     @PostMapping(value = "/{courseId}/lessons/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Object>> createLesson(@PathVariable UUID courseId, @ModelAttribute @Valid LessonRequest lessonRequest, BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors()) {
-            ApiResponse<Object> response = new ApiResponse<>(400, Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage(), null);
-            return ResponseEntity.status(400).body(response);
-        }
-
+    public ResponseEntity<ApiResponse<Object>> createLesson(@PathVariable UUID courseId, @ModelAttribute @Valid LessonRequest lessonRequest) {
         ApiResponse<Object> response = lessonService.createLesson(lessonRequest, courseId);
         return ResponseEntity.status(response.getCode()).body(response);
     }

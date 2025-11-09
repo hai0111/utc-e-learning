@@ -20,11 +20,11 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         try {
             Map<String, Object> uploadParams = ObjectUtils.asMap(
                     "folder", "lessons/" + folderName,
-                    "resource_type", "auto" // Tự động detect loại file (video, image, document)
+                    "resource_type", "auto" // Auto detect filetype (video, image, document)
             );
 
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadParams);
-            return uploadResult.get("secure_url").toString(); // Trả về HTTPS URL
+            return uploadResult.get("secure_url").toString(); // Return HTTPS URL
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file to Cloudinary: " + e.getMessage(), e);
         }
@@ -43,7 +43,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     @Override
     public Map<String, Object> getFileInfo(String url) {
         try {
-            // Extract public_id từ URL
+            // Extract public_id from URL
             String publicId = extractPublicIdFromUrl(url);
             return cloudinary.api().resource(publicId, ObjectUtils.emptyMap());
         } catch (Exception e) {
