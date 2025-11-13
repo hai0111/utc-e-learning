@@ -34,5 +34,7 @@ public class UserPositions {
     @JoinColumn(name = "PositionId", referencedColumnName = "Id")
     private Positions positions;
 
-//    private
+    @ManyToOne
+    @JoinColumn(name = "UserId", referencedColumnName = "Id")
+    private Users users;
 }

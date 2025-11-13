@@ -32,7 +32,7 @@ public class QuizOptions {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "QuizId", referencedColumnName = "Id")
+    @JoinColumn(name = "QuizQuestionsId", referencedColumnName = "Id")
     private QuizQuestions quizQuestions;
 
     @Column(name = "QuestionText")
