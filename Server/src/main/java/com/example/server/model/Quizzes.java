@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,12 +18,13 @@ import java.util.Date;
 import java.util.UUID;
 
 @Entity
-@Table(name = "Progress")
+@Table(name = "Quizzes")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class Progress {
+@Builder
+public class Quizzes {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,15 +32,14 @@ public class Progress {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "EnrollmentId", referencedColumnName = "Id")
-    private Enrollment enrollment;
-
-    @ManyToOne
-    @JoinColumn(name = "LessonId", referencedColumnName = "Id")
+    @JoinColumn(name = "LessonsId", referencedColumnName = "Id")
     private Lessons lessons;
 
-    @Column(name = "ProgressPercentage")
-    private Double progressPercentage;
+    @Column(name = "Title")
+    private String title;
+
+    @Column(name = "CreatedAt")
+    private Date createdAt;
 
     @Column(name = "UpdatedAt")
     private Date updatedAt;
