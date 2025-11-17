@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping()
 public class AuthController {

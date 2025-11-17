@@ -5,9 +5,7 @@ import com.example.server.model.Courses;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -26,6 +24,8 @@ public class CourseResponse {
 
     private Long totalStudents;
 
+    private Double progressPercentage;
+
     private Date createdAt;
 
     private Date updatedAt;
@@ -42,7 +42,7 @@ public class CourseResponse {
         return courseResponse;
     }
 
-    public static CourseResponse convertToCourseResponse(CoursesDto courseDto, Long totalStudents) {
+    public static CourseResponse convertDtoToCourseResponse(CoursesDto courseDto, Long totalStudents) {
         CourseResponse courseResponse = new CourseResponse();
         courseResponse.setId(courseDto.getId());
         courseResponse.setTitle(courseDto.getTitle());
@@ -52,6 +52,19 @@ public class CourseResponse {
         courseResponse.setUpdatedAt(courseDto.getUpdatedAt());
         courseResponse.setInstructor(courseDto.getInstructor());
         courseResponse.setTotalStudents(totalStudents);
+        return courseResponse;
+    }
+
+    public static CourseResponse convertDtoToCourseResponse(CoursesDto courseDto, Double progressPercentage) {
+        CourseResponse courseResponse = new CourseResponse();
+        courseResponse.setId(courseDto.getId());
+        courseResponse.setTitle(courseDto.getTitle());
+        courseResponse.setDescription(courseDto.getDescription());
+        courseResponse.setIsActive(courseDto.getIsActive());
+        courseResponse.setCreatedAt(courseDto.getCreatedAt());
+        courseResponse.setUpdatedAt(courseDto.getUpdatedAt());
+        courseResponse.setInstructor(courseDto.getInstructor());
+        courseResponse.setProgressPercentage(progressPercentage);
         return courseResponse;
     }
 }
