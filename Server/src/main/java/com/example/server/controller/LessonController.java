@@ -26,57 +26,56 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping("/api/courses/{courseId}/lessons")
 @RequiredArgsConstructor
-public class LesssonController {
+public class LessonController {
 
-    @Autowired
-    private LessonService lessonService;
+    private final LessonService lessonService;
 
-    @GetMapping("/{courseId}/lessons")
+    @GetMapping()
     public ResponseEntity<?> getListLessons(@PathVariable UUID courseId) {
-        List<LessonResponse> lessons = lessonService.getListLessons(courseId);
+        ApiResponse<List<LessonResponse>> lessons = lessonService.getListLessons(courseId);
         return ResponseEntity.ok(lessons);
     }
 
-    @GetMapping("/{courseId}/lessons/{lessonId}")
+    @GetMapping("/{lessonId}")
     public ResponseEntity<ApiResponse<LessonResponse>> getLessonById(@PathVariable UUID courseId, @PathVariable UUID lessonId) {
 
         ApiResponse<LessonResponse> response = lessonService.getLesson(courseId, lessonId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @PostMapping(value = "/{courseId}/lessons/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Object>> createLesson(@PathVariable UUID courseId, @ModelAttribute @Valid LessonRequest lessonRequest) {
         ApiResponse<Object> response = lessonService.createLesson(lessonRequest, courseId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @PutMapping("/{courseId}/lessons/edit/{lessonId}")
+    @PutMapping("/edit/{lessonId}")
     public ResponseEntity<ApiResponse<Object>> editLesson(@PathVariable UUID courseId, @PathVariable UUID lessonId, @RequestBody @Valid LessonRequest lessonRequest) {
         ApiResponse<Object> response = lessonService.editLesson(lessonRequest, courseId, lessonId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @PutMapping("/{courseId}/lessons/hidden/{lessonId}")
-    public ResponseEntity<ApiResponse<Object>> hiddenLesson(@PathVariable UUID courseId, @PathVariable UUID lessonId) {
-        ApiResponse<Object> response = lessonService.hiddenLesson(courseId, lessonId);
+    @PutMapping("/hide/{lessonId}")
+    public ResponseEntity<ApiResponse<Object>> hideLesson(@PathVariable UUID courseId, @PathVariable UUID lessonId) {
+        ApiResponse<Object> response = lessonService.hideLesson(courseId, lessonId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @DeleteMapping("/{courseId}/lessons/delete/{lessonId}")
+    @DeleteMapping("/delete/{lessonId}")
     public ResponseEntity<ApiResponse<Object>> deleteLesson(@PathVariable UUID courseId, @PathVariable UUID lessonId) {
         ApiResponse<Object> response = lessonService.deleteLesson(courseId, lessonId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @PutMapping("/{courseId}/lessons/batch-update")
+    @PutMapping("/batch-update")
     public ResponseEntity<ApiResponse<BatchUpdateResponse>> updateLessonBatch(@PathVariable UUID courseId, @RequestBody @Valid UpdateLessonBatchRequest request) {
         ApiResponse<BatchUpdateResponse> response = lessonService.updateLessonBatch(request, courseId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @GetMapping("/{courseId}/lessons/search")
+    @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<LessonResponse>>> quickSearchLessonsByTitleAndCourse(@PathVariable UUID courseId, @RequestParam String title) {
         ApiResponse<List<LessonResponse>> response = lessonService.searchLessonsByTitleAndCourse(title, courseId);
         return ResponseEntity.status(response.getCode()).body(response);

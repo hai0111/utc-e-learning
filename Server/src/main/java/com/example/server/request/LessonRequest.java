@@ -26,7 +26,7 @@ public class LessonRequest {
     private LessonType type;
 
     private Integer orderIndex;
-    @NotNull(message = "File is required")
+
     private MultipartFile file;
 
 }

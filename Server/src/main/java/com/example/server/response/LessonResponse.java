@@ -1,6 +1,7 @@
 package com.example.server.response;
 
 import com.example.server.enums.LessonType;
+import com.example.server.model.Lessons;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -35,4 +36,31 @@ public class LessonResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonProperty("updated_at")
     private Date updatedAt;
+
+    public static LessonResponse convertToResponse(Lessons lesson) {
+        LessonResponse response = new LessonResponse();
+        response.setId(lesson.getId());
+        response.setCourseId(lesson.getCourse().getId());
+        response.setTitle(lesson.getTitle());
+        response.setUrl(lesson.getUrl());
+        response.setType(lesson.getLessonType());
+        response.setIsActive(lesson.getIsActive());
+        response.setOrderIndex(lesson.getOrderIndex());
+        response.setCreatedAt(new Date());
+        response.setUpdatedAt(new Date());
+
+        // Set createdBy user info
+        if (lesson.getCreatedBy() != null) {
+            response.setCreatedBy(lesson.getCreatedBy().getId());
+            response.setCreatedByName(lesson.getCreatedBy().getName()); // Assuming Users has getFullName()
+        }
+
+        // Set updatedBy user info
+        if (lesson.getUpdatedBy() != null) {
+            response.setUpdatedBy(lesson.getUpdatedBy().getId());
+            response.setUpdatedByName(lesson.getUpdatedBy().getName());
+        }
+
+        return response;
+    }
 }
