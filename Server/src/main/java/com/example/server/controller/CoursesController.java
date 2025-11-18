@@ -45,13 +45,15 @@ public class CoursesController {
     }
 
     @GetMapping("/{courseId}/student-in-course")
-    public ResponseEntity<?> getPageStudentsInCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
-        return ResponseEntity.ok(coursesService.getPageStudentsInCourse(page, size, courseId));
+    public ResponseEntity<?> getPageStudentsInCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId,
+    @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(coursesService.getPageStudentsInCourse(page, size, courseId, search));
     }
 
     @GetMapping("/{courseId}/student-not-course")
-    public ResponseEntity<?> getPageStudentsNotCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId) {
-        return ResponseEntity.ok(coursesService.getPageStudentsNotCourse(page, size, courseId));
+    public ResponseEntity<?> getPageStudentsNotCourse(@RequestParam int page, @RequestParam int size, @PathVariable UUID courseId,
+                                                      @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(coursesService.getPageStudentsNotCourse(page, size, courseId, search));
     }
 
     @PostMapping("/{courseId}/add-student-to-course")

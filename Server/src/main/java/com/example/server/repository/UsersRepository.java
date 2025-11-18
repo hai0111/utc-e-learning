@@ -68,7 +68,7 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             "   FROM Enrollment e " +
             "   WHERE e.course.id = :courseId AND e.isActive = true" +
             ")")
-    Page<StudentDto> findAllStudentsNotCourse(UUID courseId, UUID userId, Pageable pageable);
+    Page<StudentDto> findAllStudentsNotCourse(UUID courseId, Pageable pageable);
 
     @Query("SELECT u.id " +
             "FROM Users u " +
@@ -87,4 +87,38 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             "INNER JOIN Courses c on c.users.id = u.id " +
             "WHERE c.id = :courseId AND c.users.id = :userId and c.isActive = true and u.isActive = true")
     UsersDto findByCourseAndInstructorId(UUID courseId, UUID userId);
+
+    @Query("SELECT u.id as id, " +
+            "u.code as code, " +
+            "u.name as name, " +
+            "u.email as email " +
+            "FROM Users u " +
+            "WHERE u.role = 'STUDENT' AND u.isActive = true " +
+            "AND u.id IN (" +
+            "   SELECT DISTINCT e.users.id " +
+            "   FROM Enrollment e " +
+            "   WHERE e.course.id = :courseId AND e.isActive = true" +
+            ")" +
+            "AND (" +
+            "LOWER(u.name) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) OR " +
+            "LOWER(u.code) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))" +
+            ")")
+    Page<StudentDto> searchStudentsByCodeOrNameInCourse(UUID courseId, String search, Pageable pageable);
+
+    @Query("SELECT u.id as id, " +
+            "u.code as code, " +
+            "u.name as name, " +
+            "u.email as email " +
+            "FROM Users u " +
+            "WHERE u.role = 'STUDENT' AND u.isActive = true " +
+            "AND u.id NOT IN (" +
+            "   SELECT DISTINCT e.users.id " +
+            "   FROM Enrollment e " +
+            "   WHERE e.course.id = :courseId AND e.isActive = true" +
+            ")" +
+            "AND (" +
+            "LOWER(u.name) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) OR " +
+            "LOWER(u.code) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))" +
+            ")")
+    Page<StudentDto> searchStudentsByCodeOrNameNotCourse(UUID courseId, String search, Pageable pageable);
 }

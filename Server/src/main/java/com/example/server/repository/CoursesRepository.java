@@ -60,7 +60,7 @@ public interface CoursesRepository extends JpaRepository<Courses, UUID> {
             "FROM Courses c " +
             "INNER JOIN Users u on c.users.id = u.id " +
             "WHERE c.id =:courseId ")
-    CoursesDto findCourseByIdAndRoleAdmin(UUID courseId);
+    CoursesDto findCourseByIdAndRoleAdminAndInstructor(UUID courseId);
 
     @Query("SELECT c.id as id, " +
             "c.title as title, " +
@@ -80,11 +80,15 @@ public interface CoursesRepository extends JpaRepository<Courses, UUID> {
             "c.isActive as isActive, " +
             "c.createdAt as createdAt, " +
             "c.updatedAt as updatedAt, " +
-            "u.name as instructor " +
+            "u.name as instructor, " +
+            "SUM(p.progressPercentage) as sumProgressAchieved, " +
+            "(SELECT COUNT(l.id) FROM Lessons l WHERE l.course.id = c.id) as totaLessonCount " +
             "FROM Courses c " +
             "INNER JOIN Users u on c.users.id = u.id " +
             "INNER JOIN Enrollment e on c.id = e.course.id " +
-            "WHERE e.course.id =:courseId and e.users.id = :studentId and c.isActive = true")
+            "LEFT JOIN Progress p on p.enrollment.id = e.id " +
+            "WHERE e.course.id =:courseId and e.users.id = :studentId and c.isActive = true " +
+            "GROUP BY c.id, c.title, c.description, c.isActive, u.name")
     CoursesDto findCourseByIdAndStudentId(UUID courseId, UUID studentId);
 
     Courses findByIdAndIsActive(UUID courseId, Boolean isActive);

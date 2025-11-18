@@ -18,4 +18,8 @@ public interface CoursesDto {
     Date getUpdatedAt();
 
     String getInstructor();
+
+    Double getSumProgressAchieved();
+
+    Long getTotaLessonCount();
 }
