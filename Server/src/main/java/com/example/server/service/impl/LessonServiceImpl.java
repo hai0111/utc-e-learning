@@ -8,6 +8,7 @@ import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
 import com.example.server.repository.LessonRepository;
 import com.example.server.repository.UsersRepository;
+import com.example.server.request.LessonEditRequest;
 import com.example.server.request.LessonRequest;
 import com.example.server.request.UpdateLessonBatchRequest;
 import com.example.server.response.ApiResponse;
@@ -16,11 +17,11 @@ import com.example.server.response.LessonResponse;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.CloudinaryService;
 import com.example.server.service.LessonService;
+import com.example.server.utils.FilterRoleUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,21 +42,12 @@ public class LessonServiceImpl implements LessonService {
     private final CoursesRepository courseRepository;
     private final CloudinaryService cloudinaryService;
 
-    private Role checkRole(Authentication authentication) {
-        String role = authentication.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse(null);
-        return switch (Objects.requireNonNull(role).toUpperCase()) {
-            case "ADMIN" -> Role.ADMIN;
-            case "INSTRUCTOR" -> Role.INSTRUCTOR;
-            default -> Role.STUDENT;
-        };
-    }
-
     @Override
     public ApiResponse<List<LessonResponse>> getListLessons(UUID courseId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
-        Role role = checkRole(authentication);
+        Role role = FilterRoleUtil.checkRole(authentication);
 
         List<LessonResponse> lessons;
         switch (role) {
@@ -81,7 +72,7 @@ public class LessonServiceImpl implements LessonService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
-        Role role = checkRole(authentication);
+        Role role = FilterRoleUtil.checkRole(authentication);
 
         LessonResponse lessonResponse;
         switch (role) {
@@ -110,7 +101,7 @@ public class LessonServiceImpl implements LessonService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
-        Role role = checkRole(authentication);
+        Role role = FilterRoleUtil.checkRole(authentication);
 
         // Check user role
         Users user = usersRepository.findByIdAndIsActive(currentUserId, true);
@@ -199,11 +190,11 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId) {
+    public ApiResponse<Object> editLesson(LessonEditRequest lessonRequest, UUID courseId, UUID lessonId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
-        Role role = checkRole(authentication);
+        Role role = FilterRoleUtil.checkRole(authentication);
 
         // Check user role
         Users user = usersRepository.findByIdAndIsActive(currentUserId, true);
@@ -233,15 +224,10 @@ public class LessonServiceImpl implements LessonService {
             throw new CustomServiceException("Lesson with this title already exists in the course", HttpStatus.BAD_REQUEST);
         }
 
-        if (lessonRequest.getTitle() != null) {
-            lesson.setTitle(lessonRequest.getTitle());
-        }
-        if (lessonRequest.getUrl() != null) {
-            lesson.setUrl(lessonRequest.getUrl());
-        }
-        if (lessonRequest.getType() != null) {
-            lesson.setLessonType(lessonRequest.getType());
-        }
+        // Update fields
+        lesson.setTitle(lessonRequest.getTitle());
+        lesson.setUrl(lessonRequest.getUrl());
+        lesson.setLessonType(lessonRequest.getType());
         if (lessonRequest.getOrderIndex() != null) {
             lesson.setOrderIndex(lessonRequest.getOrderIndex());
         }
@@ -250,7 +236,7 @@ public class LessonServiceImpl implements LessonService {
 
         Lessons updatedLesson = lessonRepository.save(lesson);
 
-        // Convert to response using static method
+        // Convert to response
         LessonResponse response = LessonResponse.convertToResponse(updatedLesson);
         return new ApiResponse<>(200, "Update lesson successfully", response);
     }
@@ -273,7 +259,7 @@ public class LessonServiceImpl implements LessonService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
-        Role role = checkRole(authentication);
+        Role role = FilterRoleUtil.checkRole(authentication);
 
         // Check user role
         Users user = usersRepository.findByIdAndIsActive(currentUserId, true);
@@ -312,7 +298,7 @@ public class LessonServiceImpl implements LessonService {
     public ApiResponse<Object> deleteLesson(UUID courseId, UUID lessonId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // Only admin can hard delete
-        if (!checkRole(authentication).equals(Role.ADMIN)) {
+        if (!FilterRoleUtil.checkRole(authentication).equals(Role.ADMIN)) {
             throw new CustomServiceException("Only admin can delete lesson", HttpStatus.FORBIDDEN);
         }
 
@@ -331,7 +317,7 @@ public class LessonServiceImpl implements LessonService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
-        Role role = checkRole(authentication);
+        Role role = FilterRoleUtil.checkRole(authentication);
 
         // Check user role and permissions
         Users user = usersRepository.findByIdAndIsActive(currentUserId, true);
