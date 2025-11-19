@@ -5,14 +5,19 @@ import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Users;
 import com.example.server.repository.UsersRepository;
 import com.example.server.request.ChangePasswordRequest;
+import com.example.server.request.ForgotPasswordRequest;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
+import com.example.server.request.VerifyCodeAndResetPasswordRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.JwtResponse;
 import com.example.server.response.UsersDetailsResponse;
 import com.example.server.security.jwt.JwtUtil;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.AuthService;
+import com.example.server.utils.MailUtil;
+import com.example.server.utils.TempCodeUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,6 +48,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private TempCodeUtil tempCodeUtil;
+
+    @Autowired
+    private MailUtil mailUtil;
 
     @Override
     public ApiResponse<Users> register(RegisterRequest registerRequest) throws ParseException {
@@ -148,6 +159,45 @@ public class AuthServiceImpl implements AuthService {
         users.setPassword(newHashedPassword);
         usersRepository.save(users);
         return new ApiResponse<>(200, "Password changed successfully", null);
+    }
+
+    @Override
+    public ApiResponse<Void> forgotPassword(ForgotPasswordRequest forgotPasswordRequest,
+    HttpServletRequest httpServletRequest) {
+        Users users = usersRepository.findByEmailAndIsActive(forgotPasswordRequest.getEmail(), true);
+        if (users == null) {
+            throw new CustomServiceException("User not found", HttpStatus.NOT_FOUND);
+        }
+        try {
+            String code = tempCodeUtil.createTemporaryCode(httpServletRequest.getRemoteAddr());
+            String body = mailUtil.resetPassMailTemplate(forgotPasswordRequest.getEmail(), code);
+            String subject = "Confirmation code for your password reset request";
+            mailUtil.sendEmail(forgotPasswordRequest.getEmail(), subject, body);
+            return new ApiResponse<>(200, "The code has been sent to your email.", null);
+        } catch (Exception e) {
+            throw new CustomServiceException("Email could not be sent", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Override
+    public ApiResponse<Void> verifyCodeAndSetNewPassword(VerifyCodeAndResetPasswordRequest request, HttpServletRequest httpServletRequest) {
+        Boolean verifyCode = tempCodeUtil.verifyTemporaryCode(httpServletRequest.getRemoteAddr(), request.getCode());
+        if (verifyCode) {
+            tempCodeUtil.removeCode(httpServletRequest.getRemoteAddr());
+            Users users = usersRepository.findByEmailAndIsActive(request.getEmail(), true);
+            if (users == null) {
+                throw new CustomServiceException("User not found", HttpStatus.NOT_FOUND);
+            }
+            String newPassword = request.getNewPassword();
+            String confirmPassword = request.getConfirmPassword();
+            if (!newPassword.equals(confirmPassword)) {
+                throw new CustomServiceException("Password and confirm password do not match", HttpStatus.CONFLICT);
+            }
+            users.setPassword(passwordEncoder.encode(newPassword));
+            usersRepository.save(users);
+            return new ApiResponse<>(200, "Password verified successfully", null);
+        }
+        return null;
     }
 
     private String validateNewPassword(String password) {

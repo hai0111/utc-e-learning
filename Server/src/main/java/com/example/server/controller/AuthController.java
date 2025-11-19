@@ -1,9 +1,12 @@
 package com.example.server.controller;
 
 import com.example.server.request.ChangePasswordRequest;
+import com.example.server.request.ForgotPasswordRequest;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
+import com.example.server.request.VerifyCodeAndResetPasswordRequest;
 import com.example.server.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,5 +39,17 @@ public class AuthController {
     @GetMapping("/principal")
     public ResponseEntity<?> getAccountPrincipal() {
         return ResponseEntity.ok(authService.getPrincipalFromContext());
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest,
+                                            HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(authService.forgotPassword(forgotPasswordRequest, httpServletRequest));
+    }
+
+    @PostMapping("/verify-code-and-reset-password")
+    public ResponseEntity<?> verifyCodeAndResetPassword(@RequestBody @Valid VerifyCodeAndResetPasswordRequest request,
+                                                        HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(authService.verifyCodeAndSetNewPassword(request, httpServletRequest));
     }
 }
