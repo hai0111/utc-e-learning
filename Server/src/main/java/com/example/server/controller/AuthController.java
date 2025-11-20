@@ -1,13 +1,21 @@
 package com.example.server.controller;
 
 import com.example.server.request.ChangePasswordRequest;
+import com.example.server.request.ForgotPasswordRequest;
+import com.example.server.request.VerifyCodeAndResetPasswordRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.server.request.LoginRequest;
 import com.example.server.request.RegisterRequest;
 import com.example.server.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.text.ParseException;
 
@@ -36,5 +44,17 @@ public class AuthController {
     @GetMapping("/principal")
     public ResponseEntity<?> getAccountPrincipal() {
         return ResponseEntity.ok(authService.getPrincipalFromContext());
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest,
+                                            HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(authService.forgotPassword(forgotPasswordRequest, httpServletRequest));
+    }
+
+    @PostMapping("/verify-code-and-reset-password")
+    public ResponseEntity<?> verifyCodeAndResetPassword(@RequestBody @Valid VerifyCodeAndResetPasswordRequest request,
+                                                        HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(authService.verifyCodeAndSetNewPassword(request, httpServletRequest));
     }
 }
