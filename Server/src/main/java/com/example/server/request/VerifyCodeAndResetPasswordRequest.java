@@ -1,21 +1,14 @@
 package com.example.server.request;
-import com.example.server.enums.Role;
-import com.example.server.model.Users;
+
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class RegisterRequest {
-    @NotBlank(message = "Name cannot be blank")
-    private String name;
+public class VerifyCodeAndResetPasswordRequest {
 
     @NotBlank(message = "Email cannot be blank")
     @Pattern(
@@ -23,6 +16,9 @@ public class RegisterRequest {
             message = "Invalid email format (must be example@domain.com)"
     )
     private String email;
+
+    @NotBlank(message = "Code cannot be blank")
+    private String code;
 
     @NotBlank(message = "Password cannot be blank")
     @Size(min = 8, message = "Password must be at least 8 characters long")
@@ -38,12 +34,8 @@ public class RegisterRequest {
             regexp = ".*[@$!%*?&].*",
             message = "Password must contain at least one special character (@$!%*?&)."
     )
-    private String password;
+    private String newPassword;
 
-    @NotBlank(message = "Role cannot be blank")
-    private Role role;
-    @NotNull(message = "Is active cannot be blank")
-    private Boolean isActive;
-    private Users createdBy;
-    private Users updatedBy;
+    @NotBlank(message = "Confirm cannot be blank")
+    private String confirmPassword;
 }
