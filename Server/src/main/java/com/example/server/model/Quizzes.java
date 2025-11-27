@@ -31,10 +31,6 @@ public class Quizzes {
     @Column(name = "Id")
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "LessonsId", referencedColumnName = "Id")
-    private Lessons lessons;
-
     @Column(name = "Title")
     private String title;
 

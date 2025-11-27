@@ -31,10 +31,10 @@ public class UserPositions {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "PositionId", referencedColumnName = "Id")
-    private Positions positions;
-
-    @ManyToOne
     @JoinColumn(name = "UserId", referencedColumnName = "Id")
     private Users users;
+
+    @ManyToOne
+    @JoinColumn(name = "PositionId", referencedColumnName = "Id")
+    private Positions positions;
 }

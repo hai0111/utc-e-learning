@@ -46,6 +46,9 @@ public class QuizAnswers {
     @Column(name = "RawText")
     private String rawText;
 
+    @Column(name = "Score")
+    private Double score;
+
     @Column(name = "CreatedAt")
     private Date createdAt;
 }

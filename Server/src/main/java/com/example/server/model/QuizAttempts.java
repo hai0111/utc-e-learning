@@ -42,9 +42,6 @@ public class QuizAttempts {
     @Column(name = "AttemptNo")
     private Integer attemptNo;
 
-    @Column(name = "Score")
-    private Double score;
-
     @Column(name = "FeedBack")
     private String feedBack;
 

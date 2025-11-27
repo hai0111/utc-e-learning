@@ -45,6 +45,9 @@ public class QuizQuestions {
     @Column(name = "QuestionType")
     private QuestionType questionType;
 
+    @Column(name = "RawPoint")
+    private Integer rawPoint;
+
     @Column(name = "OrderIndex")
     private Integer orderIndex;
 
