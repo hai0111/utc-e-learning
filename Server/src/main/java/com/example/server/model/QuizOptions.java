@@ -35,8 +35,8 @@ public class QuizOptions {
     @JoinColumn(name = "QuizQuestionsId", referencedColumnName = "Id")
     private QuizQuestions quizQuestions;
 
-    @Column(name = "QuestionText")
-    private String questionText;
+    @Column(name = "OptionText")
+    private String optionText;
 
     @Column(name = "IsCorrect")
     private Boolean isCorrect;

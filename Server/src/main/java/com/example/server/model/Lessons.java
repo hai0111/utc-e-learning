@@ -43,15 +43,19 @@ public class Lessons {
     @Column(name = "Url")
     private String url;
 
-    @Column(name = "IsActive")
-    private Boolean isActive;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "lessonType")
     private LessonType lessonType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "QuizId", referencedColumnName = "Id")
+    private Quizzes quizzes;
+
     @Column(name = "OrderIndex")
     private Integer orderIndex;
+
+    @Column(name = "IsActive")
+    private Boolean isActive;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CreatedBy", referencedColumnName = "Id")
