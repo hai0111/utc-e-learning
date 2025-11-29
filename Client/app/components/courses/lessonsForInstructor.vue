@@ -124,7 +124,10 @@
 import { cloneDeep, isEqual } from "lodash";
 import Sortable from "sortablejs";
 import type { VDataTable } from "vuetify/components";
+import CourseService from "~/services/course.service";
 import { ELessonTypes, type ILesson } from "~/types/lesson";
+
+const { params } = useRoute();
 
 const lessonHeaders = [
   {
@@ -175,28 +178,17 @@ const lessonTypeOptions = [
   },
 ];
 
-const lessonsDataOriginal = ref<ILesson[]>(
-  Array.from({ length: 10 }, (_, i) => {
-    const type = lessonTypeOptions[i % lessonTypeOptions.length]!.value;
-
-    const titles = {
-      [ELessonTypes.VIDEO]: `Lesson ${i + 1}: Introduction to JavaScript`,
-      [ELessonTypes.DOCUMENT]: `Lesson ${i + 1}: Advanced Concepts`,
-      [ELessonTypes.QUIZ]: `Lesson ${i + 1}: Practice Quiz`,
-    };
-
-    return {
-      id: (i + 1).toString(),
-      orderIndex: i + 1,
-      title: titles[type as keyof typeof titles],
-      type,
-      url: `https://example.com/lesson-${i + 1}`,
-      isActive: i % 2 === 0,
-    };
-  })
+const { data: lessonsDataOriginal } = useAsyncData(
+  `course/${params.id as string}/lessons`,
+  () => CourseService.getLessons((params.id as string) ?? ""),
+  { default: () => [] }
 );
 
-const lessonsData = ref(cloneDeep(lessonsDataOriginal.value));
+const lessonsData = ref<ILesson[]>([]);
+
+watch(lessonsDataOriginal, (val) => {
+  lessonsData.value = cloneDeep(val);
+});
 
 const searchLessonValue = ref<string>("");
 
@@ -228,7 +220,7 @@ onMounted(() => {
       const clonedData = cloneDeep(lessonsData.value);
       if (oldIndex === undefined || newIndex === undefined) return;
       const [movedItem] = clonedData.splice(oldIndex, 1);
-      clonedData.splice(newIndex, 0, movedItem!);
+      clonedData.splice(newIndex, 0, movedItem as ILesson);
       lessonsData.value = clonedData;
     },
   });

@@ -1,16 +1,23 @@
 export enum ELessonTypes {
-  VIDEO = "video",
-  DOCUMENT = "document",
-  QUIZ = "quiz",
+  VIDEO = "VIDEO",
+  DOCUMENT = "DOCUMENT",
+  QUIZ = "QUIZ",
 }
 
 export interface ILesson {
   id: string;
-  orderIndex: number;
+  courseId: string;
   title: string;
-  type: ELessonTypes;
   url: string;
-  isActive: boolean;
+  type: ELessonTypes;
+  isActive: true;
+  orderIndex: number;
+  createdBy: string;
+  createdByName: string;
+  updatedBy: string;
+  updatedByName: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ILessonForm {
