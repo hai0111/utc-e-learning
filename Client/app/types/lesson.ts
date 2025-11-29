@@ -27,3 +27,13 @@ export interface ILessonForm {
   url: string;
   isActive: boolean;
 }
+
+export interface ILessonBatchUpdateItem {
+  id: string;
+  orderIndex: number;
+  isActive: boolean;
+}
+
+export interface ILessonBatchUpdateForm {
+  lessons: ILessonBatchUpdateItem[];
+}

@@ -74,7 +74,7 @@ const onSave = async () => {
   if (!valid) return;
 
   try {
-    const res = await CourseService.create({
+    await CourseService.create({
       ...formValues.value,
       userId: useAuth().userInfo?.uuid,
     } as ICourseForm);

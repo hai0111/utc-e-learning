@@ -24,31 +24,38 @@
       </v-card-text>
 
       <v-card-actions class="justify-end">
-        <group-btn-form @click:cancel="$emit('update:modelValue', false)" />
+        <group-btn-form
+          @click:cancel="$emit('update:modelValue', false)"
+          @click:save="onSave"
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
+import { toast } from "vue3-toastify";
 import type { DataTableHeader } from "vuetify";
 import CourseService from "~/services/course.service";
 
-defineProps<{
+const props = defineProps<{
   modelValue: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
+  (e: "success"): void;
 }>();
 
 const { params } = useRoute();
 
-const { data } = useAsyncData(
+const { data, refresh } = useAsyncData(
   `course/${params.id as string}/student-not-course`,
   () => CourseService.getStudentsNotEnrolled((params.id as string) ?? ""),
   { default: () => [] }
 );
+
+defineExpose({ refresh });
 
 const searchStudentValue = ref<string>("");
 
@@ -78,6 +85,21 @@ const lessonHeaders: DataTableHeader[] = [
     sortable: false,
   },
 ];
+
+const onSave = async () => {
+  const studentIds = Array.from(selectedStudents.value);
+  try {
+    await CourseService.addStudentToCourse(params.id as string, studentIds);
+    toast("Successfully", { type: "success" });
+    emit("update:modelValue", false);
+    refresh();
+    selectedStudents.value = [];
+    emit("success");
+  } catch (err) {
+    console.error(err);
+    toast("Something went wrong", { type: "error" });
+  }
+};
 </script>
 
 <style scoped></style>

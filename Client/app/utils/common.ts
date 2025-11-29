@@ -1,3 +1,5 @@
+import { DEFAULT_MESSAGES } from "~/constants/messages";
+
 export const toSlug = (text: string): string => {
   return text
     .normalize("NFD") // split accent from letters
@@ -27,5 +29,26 @@ export const clearAllCookies = () => {
     const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
 
     document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+};
+
+export const apiCaller = async <T>(
+  postCallback: () => Promise<T>,
+  {
+    handleSuccess,
+    handleError,
+  }: {
+    handleSuccess?: (data: T) => void;
+    handleError?: (error: any) => void;
+  } = {}
+) => {
+  try {
+    const res = await postCallback();
+    handleSuccess && handleSuccess(res);
+    toastSuccess(DEFAULT_MESSAGES.apiSuccess);
+  } catch (err) {
+    console.error(err);
+    toastError(DEFAULT_MESSAGES.apiError);
+    handleError && handleError(err);
   }
 };
