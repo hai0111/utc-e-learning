@@ -14,10 +14,10 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <div class="grid grid-cols-2 gap-y-3 gap-x-9 mt-5">
+          <v-form ref="form" class="grid grid-cols-2 gap-y-3 gap-x-9 mt-5">
             <info-item label="Title">
               <template v-if="isEditBasicInfo">
-                <v-text-field v-model="basicInfo.title" />
+                <v-text-field v-model="basicInfo.title" :rules="[required()]" />
               </template>
 
               <template v-else>
@@ -49,16 +49,21 @@
                   v-model="basicInfo.description"
                   :max-rows="9"
                   auto-grow
+                  :rules="[required()]"
                 />
               </template>
 
               <template v-else> {{ basicInfo.description }} </template>
             </info-item>
-          </div>
+          </v-form>
         </v-card-text>
 
         <v-card-actions class="justify-end">
-          <group-btn-form v-if="isEditBasicInfo" @click:cancel="onCancelEdit" />
+          <group-btn-form
+            v-if="isEditBasicInfo"
+            @click:cancel="onCancelEdit"
+            @click:save="handleEdit"
+          />
         </v-card-actions>
       </v-card>
 
@@ -73,7 +78,7 @@
 import { cloneDeep } from "lodash";
 import { ACTIVE_ITEMS } from "~/constants";
 import CourseService from "~/services/course.service";
-import type { ICourse } from "~/types/course";
+import type { ICourse, ICourseForm } from "~/types/course";
 
 const { params } = useRoute();
 
@@ -90,6 +95,24 @@ const basicInfo = ref<Partial<ICourse>>({});
 const onCancelEdit = () => {
   basicInfo.value = cloneDeep(data.value);
   isEditBasicInfo.value = false;
+};
+
+const form = ref();
+
+const handleEdit = async () => {
+  const { valid } = await form.value.validate();
+  if (!valid) return;
+
+  apiCaller(
+    () =>
+      CourseService.edit(params.id as string, basicInfo.value as ICourseForm),
+    {
+      handleSuccess() {
+        data.value = cloneDeep(basicInfo.value);
+        isEditBasicInfo.value = false;
+      },
+    }
+  );
 };
 
 watch(data, (val) => {

@@ -24,7 +24,10 @@
       />
 
       <div v-if="isDifferent" class="flex items-center justify-end mb-1">
-        <group-btn-form @click:cancel="cancelEditLessons" />
+        <group-btn-form
+          @click:cancel="cancelEditLessons"
+          @click:save="handleBatchUpdate"
+        />
       </div>
 
       <v-data-table
@@ -101,7 +104,10 @@
         <strong>“{{ deleteModal.lesson?.title }}”</strong>?
       </v-card-text>
       <v-card-actions>
-        <group-btn-form @click:cancel="deleteModal.isOpen = false" />
+        <group-btn-form
+          @click:cancel="deleteModal.isOpen = false"
+          @click:save="handleDelete"
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -124,7 +130,15 @@
 import { cloneDeep, isEqual } from "lodash";
 import Sortable from "sortablejs";
 import type { VDataTable } from "vuetify/components";
-import { ELessonTypes, type ILesson } from "~/types/lesson";
+import { DEFAULT_MESSAGES } from "~/constants/messages";
+import CourseService from "~/services/course.service";
+import {
+  ELessonTypes,
+  type ILesson,
+  type ILessonBatchUpdateForm,
+} from "~/types/lesson";
+
+const { params } = useRoute();
 
 const lessonHeaders = [
   {
@@ -175,28 +189,17 @@ const lessonTypeOptions = [
   },
 ];
 
-const lessonsDataOriginal = ref<ILesson[]>(
-  Array.from({ length: 10 }, (_, i) => {
-    const type = lessonTypeOptions[i % lessonTypeOptions.length]!.value;
-
-    const titles = {
-      [ELessonTypes.VIDEO]: `Lesson ${i + 1}: Introduction to JavaScript`,
-      [ELessonTypes.DOCUMENT]: `Lesson ${i + 1}: Advanced Concepts`,
-      [ELessonTypes.QUIZ]: `Lesson ${i + 1}: Practice Quiz`,
-    };
-
-    return {
-      id: (i + 1).toString(),
-      orderIndex: i + 1,
-      title: titles[type as keyof typeof titles],
-      type,
-      url: `https://example.com/lesson-${i + 1}`,
-      isActive: i % 2 === 0,
-    };
-  })
+const { data: lessonsDataOriginal, refresh } = useAsyncData(
+  `course/${params.id as string}/lessons`,
+  () => CourseService.getLessons((params.id as string) ?? ""),
+  { default: () => [] }
 );
 
-const lessonsData = ref(cloneDeep(lessonsDataOriginal.value));
+const lessonsData = ref<ILesson[]>([]);
+
+watch(lessonsDataOriginal, (val) => {
+  lessonsData.value = cloneDeep(val);
+});
 
 const searchLessonValue = ref<string>("");
 
@@ -206,9 +209,29 @@ const lessons = computed(() => {
   );
 });
 
+// BATCH UPDATE ============================================
 const isDifferent = computed(() => {
   return !isEqual(lessonsData.value, lessonsDataOriginal.value);
 });
+
+const handleBatchUpdate = async () => {
+  const body: ILessonBatchUpdateForm = {
+    lessons: lessonsData.value.map((item) => ({
+      id: item.id,
+      isActive: item.isActive,
+      orderIndex: item.orderIndex,
+    })),
+  };
+
+  try {
+    await CourseService.batchUpdateLessons(params.id as string, body);
+    toastSuccess(DEFAULT_MESSAGES.apiSuccess);
+    refresh();
+  } catch (err) {
+    console.error(err);
+    toastError(DEFAULT_MESSAGES.apiError);
+  }
+};
 
 // SORT ============================================
 const lessonTable = ref<InstanceType<typeof VDataTable>>();
@@ -228,7 +251,7 @@ onMounted(() => {
       const clonedData = cloneDeep(lessonsData.value);
       if (oldIndex === undefined || newIndex === undefined) return;
       const [movedItem] = clonedData.splice(oldIndex, 1);
-      clonedData.splice(newIndex, 0, movedItem!);
+      clonedData.splice(newIndex, 0, movedItem as ILesson);
       lessonsData.value = clonedData;
     },
   });
@@ -246,6 +269,21 @@ const openDeleteModal = (data: ILesson) => {
   deleteModal.value.isOpen = true;
 };
 
+const handleDelete = async () => {
+  try {
+    await CourseService.removeLesson(
+      params.id as string,
+      deleteModal.value.lesson!.id
+    );
+
+    toastSuccess(DEFAULT_MESSAGES.apiSuccess);
+    refresh();
+  } catch (err) {
+    console.error(err);
+    toastError(DEFAULT_MESSAGES.apiError);
+  }
+};
+
 // PREVIEW ============================================
 
 const previewModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
@@ -254,6 +292,8 @@ const previewModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
 });
 
 const openPreviewModal = (data: ILesson) => {
+  console.log(data);
+
   previewModal.value.lesson = data;
   previewModal.value.isOpen = true;
 };

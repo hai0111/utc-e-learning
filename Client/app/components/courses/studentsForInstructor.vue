@@ -44,7 +44,11 @@
     </v-card-text>
   </v-card>
 
-  <courses-invite-students-modal v-model="isOpenAdd" />
+  <courses-invite-students-modal
+    v-model="isOpenAdd"
+    @success="refresh"
+    ref="inviteStudentModalRef"
+  />
 
   <v-dialog v-model="deleteModal.isOpen" max-width="400">
     <v-card>
@@ -69,6 +73,7 @@ import type { DataTableHeader } from "vuetify";
 import type { VDataTable } from "vuetify/components";
 import CourseService from "~/services/course.service";
 import type { IStudent } from "~/types/student";
+import type InviteStudentsModal from "./inviteStudentsModal.vue";
 
 const headers: DataTableHeader[] = [
   {
@@ -95,7 +100,7 @@ const headers: DataTableHeader[] = [
 
 const { params } = useRoute();
 
-const { data } = useAsyncData(
+const { data, refresh } = useAsyncData(
   `course/${params.id as string}/students`,
   () => CourseService.getStudents((params.id as string) ?? ""),
   { default: () => [] }
@@ -123,6 +128,8 @@ const openDeleteModal = (data: IStudent) => {
   deleteModal.value.isOpen = true;
 };
 
+const inviteStudentModalRef = ref<InstanceType<typeof InviteStudentsModal>>();
+
 const handleDelete = async () => {
   if (!deleteModal.value.student) return;
 
@@ -133,6 +140,8 @@ const handleDelete = async () => {
     );
 
     toast("Deleted successfully", { type: "success" });
+    refresh();
+    inviteStudentModalRef.value?.refresh();
   } catch (err) {
     toast("An error occurred", { type: "error" });
   }
