@@ -1,5 +1,6 @@
 package com.example.server.response;
 
+import com.example.server.enums.Role;
 import com.example.server.security.service.UserDetailsImpl;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,8 +35,10 @@ public class UsersDetailsResponse {
         usersDetailsResponse.setEmail(userDetails.getEmail());
         usersDetailsResponse.setIsActive(userDetails.getIsActive());
         usersDetailsResponse.setRoleName(roleName);
-        usersDetailsResponse.setCreatedBy(userDetails.getCreatedBy().getName());
-        usersDetailsResponse.setUpdateBy(userDetails.getUpdatedBy().getName());
+        if (!roleName.equals(Role.ADMIN.toString())) {
+            usersDetailsResponse.setCreatedBy(userDetails.getCreatedBy().getName());
+            usersDetailsResponse.setUpdateBy(userDetails.getUpdatedBy().getName());
+        }
         return usersDetailsResponse;
     }
 }
