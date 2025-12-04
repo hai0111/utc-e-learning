@@ -21,10 +21,11 @@ export interface ILesson {
 }
 
 export interface ILessonForm {
-  orderIndex: number;
   title: string;
-  type: ELessonTypes;
   url: string;
+  type: ELessonTypes;
+  orderIndex: number;
+  file: File;
   isActive: boolean;
 }
 

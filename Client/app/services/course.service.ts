@@ -1,7 +1,11 @@
 import { DEFAULT_PAGER } from "~/constants";
 import BaseService from "~/services/base.service";
 import type { ICourse, ICourseForm } from "~/types/course";
-import type { ILesson, ILessonBatchUpdateForm } from "~/types/lesson";
+import type {
+  ILesson,
+  ILessonBatchUpdateForm,
+  ILessonForm,
+} from "~/types/lesson";
 import type { IStudentNotEnrolled } from "~/types/student";
 
 class Course extends BaseService {
@@ -89,6 +93,23 @@ class Course extends BaseService {
   async getLessons(courseId: string) {
     const res = await this.instance.get<ILesson[]>(
       `/courses/${courseId}/lessons`
+    );
+
+    return res.data;
+  }
+
+  async createLesson(courseId: string, formValues: ILessonForm) {
+    const res = await this.instance.postForm<ILesson[]>(
+      `/courses/${courseId}/lessons/create`,
+      formValues
+    );
+
+    return res.data;
+  }
+
+  async getLessonDetail(courseId: string, lessonId: string) {
+    const res = await this.instance.get<ILesson>(
+      `/courses/${courseId}/lessons/${lessonId}`
     );
 
     return res.data;

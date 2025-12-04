@@ -9,15 +9,20 @@
 
       <v-card class="w-full">
         <v-card-text>
-          <lesson-form-control v-model="formValues" ref="form" />
+          <lesson-form-control
+            v-model="formValues"
+            :disabled="isLoading"
+            ref="form"
+          />
         </v-card-text>
       </v-card>
 
       <div class="flex justify-end mt-3">
         <group-btn-form
+          :loading="isLoading"
           @click:cancel="onCancel"
           variant="elevated"
-          @click:save="onSave"
+          @click:save="handleSave"
         />
       </div>
     </div>
@@ -25,8 +30,9 @@
 </template>
 
 <script setup lang="ts">
-import { toast } from "vue3-toastify";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import { DEFAULT_MESSAGES } from "~/constants/messages";
+import CourseService from "~/services/course.service";
 import { ELessonTypes, type ILessonForm } from "~/types/lesson";
 
 const route = useRoute();
@@ -50,7 +56,7 @@ const router = useRouter();
 const formValues = ref<Partial<ILessonForm>>({
   isActive: true,
   type: ELessonTypes.VIDEO,
-  orderIndex: 1,
+  orderIndex: 0,
 });
 
 const onCancel = () => {
@@ -58,12 +64,28 @@ const onCancel = () => {
 };
 
 const form = ref();
-const onSave = async () => {
+const isLoading = ref(false);
+const handleSave = async () => {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  toast("Create successfully", {
-    type: "success",
-  });
+  if (!formValues.value.file) {
+    toastWarning("Please select file");
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    await CourseService.createLesson(
+      route.params.id as string,
+      formValues.value as ILessonForm
+    );
+    await navigateTo(`/courses/${route.params.id}`);
+    toastSuccess(DEFAULT_MESSAGES.apiSuccess);
+  } catch (err) {
+    toastError(DEFAULT_MESSAGES.apiError);
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>

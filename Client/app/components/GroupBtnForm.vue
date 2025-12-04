@@ -15,6 +15,7 @@
       color="success"
       append-icon="mdi-check"
       @click="$emit('click:save')"
+      :loading="loading"
     >
       {{ saveText }}
     </v-btn>
@@ -31,6 +32,7 @@ withDefaults(
     variant?: VBtn["variant"];
     saveText?: string;
     cancelText?: string;
+    loading?: boolean;
   }>(),
   {
     density: "default",

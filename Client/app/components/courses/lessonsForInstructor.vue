@@ -130,6 +130,7 @@
 import { cloneDeep, isEqual } from "lodash";
 import Sortable from "sortablejs";
 import type { VDataTable } from "vuetify/components";
+import { lessonTypeOptions } from "~/constants/lesson";
 import { DEFAULT_MESSAGES } from "~/constants/messages";
 import CourseService from "~/services/course.service";
 import {
@@ -171,24 +172,6 @@ const lessonHeaders = [
   },
 ];
 
-const lessonTypeOptions = [
-  {
-    title: "Video",
-    value: ELessonTypes.VIDEO,
-    color: "blue",
-  },
-  {
-    title: "PDF",
-    value: ELessonTypes.DOCUMENT,
-    color: "purple",
-  },
-  {
-    title: "Quiz",
-    value: ELessonTypes.QUIZ,
-    color: "green",
-  },
-];
-
 const { data: lessonsDataOriginal, refresh } = useAsyncData(
   `course/${params.id as string}/lessons`,
   () => CourseService.getLessons((params.id as string) ?? ""),
@@ -197,9 +180,13 @@ const { data: lessonsDataOriginal, refresh } = useAsyncData(
 
 const lessonsData = ref<ILesson[]>([]);
 
-watch(lessonsDataOriginal, (val) => {
-  lessonsData.value = cloneDeep(val);
-});
+watch(
+  lessonsDataOriginal,
+  (val) => {
+    lessonsData.value = cloneDeep(val);
+  },
+  { immediate: true }
+);
 
 const searchLessonValue = ref<string>("");
 
