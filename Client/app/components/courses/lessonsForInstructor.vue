@@ -13,7 +13,7 @@
       </v-btn>
     </v-card-title>
 
-    <v-card-subtitle> Total: 21 </v-card-subtitle>
+    <v-card-subtitle> Total: {{ lessonsData.length }}</v-card-subtitle>
 
     <v-card-text class="pt-5">
       <v-text-field
