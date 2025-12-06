@@ -15,24 +15,24 @@ import java.util.UUID;
 public interface LessonRepository extends JpaRepository<Lessons, UUID> {
     // For Admin - Get all lessons in a course
     @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.orderIndex, " +
+            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
             "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
-            "WHERE l.course.id = :courseId AND l.isActive = true " +
+            "WHERE l.course.id = :courseId AND l.isDelete = false " +
             "ORDER BY l.orderIndex ASC")
     List<LessonResponse> findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(@Param("courseId") UUID courseId);
 
     // For Instructor - Get lessons in courses they own
     @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.orderIndex, " +
+            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
             "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
-            "WHERE l.course.id = :courseId AND l.isActive = true " +
-            "AND l.course.users.id = :instructorId " +
+            "WHERE l.course.id = :courseId " +
+            "AND l.course.users.id = :instructorId AND l.isDelete = false " +
             "ORDER BY l.orderIndex ASC")
     List<LessonResponse> findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(
             @Param("courseId") UUID courseId,
@@ -40,12 +40,12 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
 
     // For Student - Get lessons in courses they enrolled
     @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.orderIndex, " +
+            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
             "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
-            "WHERE l.course.id = :courseId AND l.isActive = true " +
+            "WHERE l.course.id = :courseId AND l.isDelete = false AND l.isActive = true " +
             "AND l.course.id IN (SELECT e.course.id FROM Enrollment e WHERE e.users.id = :studentId) " +
             "ORDER BY l.orderIndex ASC")
     List<LessonResponse> findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(
@@ -54,7 +54,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
 
     // Get single lesson for Admin
     @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.orderIndex, " +
+            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
             "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
@@ -66,7 +66,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
 
     // Get single lesson for Instructor
     @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.orderIndex, " +
+            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
             "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
@@ -80,7 +80,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
 
     // Get single lesson for Student
     @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.orderIndex, " +
+            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
             "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +

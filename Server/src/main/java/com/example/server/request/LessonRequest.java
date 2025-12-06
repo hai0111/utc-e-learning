@@ -29,4 +29,6 @@ public class LessonRequest {
 
     private MultipartFile file;
 
+    private Boolean isActive;
+
 }
