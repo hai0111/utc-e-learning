@@ -49,20 +49,14 @@ public class LessonServiceImpl implements LessonService {
         UUID currentUserId = userDetails.getId();
         Role role = FilterRoleUtil.checkRole(authentication);
 
-        List<LessonResponse> lessons;
-        switch (role) {
-            case ADMIN:
-                lessons = lessonRepository.findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(courseId);
-                break;
-            case INSTRUCTOR:
-                lessons = lessonRepository.findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(courseId, currentUserId);
-                break;
-            case STUDENT:
-                lessons = lessonRepository.findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(courseId, currentUserId);
-                break;
-            default:
-                throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
-        }
+        List<LessonResponse> lessons = switch (role) {
+            case ADMIN -> lessonRepository.findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(courseId);
+            case INSTRUCTOR ->
+                    lessonRepository.findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(courseId, currentUserId);
+            case STUDENT ->
+                    lessonRepository.findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(courseId, currentUserId);
+            default -> throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
+        };
 
         return new ApiResponse<>(200, "Success", lessons);
     }
@@ -74,20 +68,14 @@ public class LessonServiceImpl implements LessonService {
         UUID currentUserId = userDetails.getId();
         Role role = FilterRoleUtil.checkRole(authentication);
 
-        LessonResponse lessonResponse;
-        switch (role) {
-            case ADMIN:
-                lessonResponse = lessonRepository.findByIdAndCourseIdAndIsActiveTrue(lessonId, courseId).orElse(null);
-                break;
-            case INSTRUCTOR:
-                lessonResponse = lessonRepository.findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
-                break;
-            case STUDENT:
-                lessonResponse = lessonRepository.findByIdAndCourseIdAndStudentIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
-                break;
-            default:
-                throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
-        }
+        LessonResponse lessonResponse = switch (role) {
+            case ADMIN -> lessonRepository.findByIdAndCourseIdAndIsActiveTrue(lessonId, courseId).orElse(null);
+            case INSTRUCTOR ->
+                    lessonRepository.findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
+            case STUDENT ->
+                    lessonRepository.findByIdAndCourseIdAndStudentIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
+            default -> throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
+        };
 
         if (lessonResponse == null) {
             throw new CustomServiceException("Lesson not found", HttpStatus.NOT_FOUND);
@@ -163,6 +151,7 @@ public class LessonServiceImpl implements LessonService {
             lesson.setLessonType(lessonRequest.getType());
             lesson.setOrderIndex(newOrderIndex);
             lesson.setIsActive(true);
+            lesson.setIsDelete(false);
             lesson.setCreatedBy(user);
             lesson.setUpdatedBy(user);
             lesson.setCreatedAt(new Date());
@@ -297,18 +286,36 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public ApiResponse<Object> deleteLesson(UUID courseId, UUID lessonId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Only admin can hard delete
-        if (!FilterRoleUtil.checkRole(authentication).equals(Role.ADMIN)) {
-            throw new CustomServiceException("Only admin can delete lesson", HttpStatus.FORBIDDEN);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        UUID currentUserId = userDetails.getId();
+        Role role = FilterRoleUtil.checkRole(authentication);
+
+        if (role.equals(Role.STUDENT)) {
+            throw new CustomServiceException("You do not have permission to delete lessons", HttpStatus.FORBIDDEN);
         }
 
-        Optional<Lessons> lesson = lessonRepository.findByIdAndCourseId(lessonId, courseId);
-        if (lesson.isEmpty()) {
-            throw new CustomServiceException("Lesson not found", HttpStatus.NOT_FOUND);
+        Users user = usersRepository.findByIdAndIsActive(currentUserId, true);
+        if (user == null) {
+            throw new CustomServiceException("User does not exist", HttpStatus.BAD_REQUEST);
         }
 
-        lessonRepository.delete(lesson.get());
-        return new ApiResponse<>(200, "Delete lesson successfully", null);
+        Optional<Lessons> lessonOptional;
+        if (role.equals(Role.ADMIN)) {
+            lessonOptional = lessonRepository.findByIdAndCourseId(lessonId, courseId);
+        } else {
+            lessonOptional = lessonRepository.findLessonEntityByIdAndCourseIdAndInstructorId(lessonId, courseId, currentUserId);
+        }
+
+        if (lessonOptional.isEmpty()) {
+            throw new CustomServiceException("Lesson not found or you don't have permission to delete", HttpStatus.NOT_FOUND);
+        }
+        Lessons lesson = lessonOptional.get();
+        lesson.setIsDelete(true);
+        lesson.setIsActive(false);
+        lesson.setUpdatedBy(user);
+        lesson.setUpdatedAt(new Date());
+        lessonRepository.save(lesson);
+        return new ApiResponse<>(200, "Delete lesson successfully (Soft Delete)", null);
     }
 
     @Override
@@ -368,12 +375,12 @@ public class LessonServiceImpl implements LessonService {
                     }
 
                     // Check for duplicate orderIndex in the database
-                    boolean existsInDb = lessonRepository.existsByCourseIdAndOrderIndexAndIdNot(courseId, item.getOrderIndex(), lessonId);
-                    if (existsInDb) {
-                        errors.add(new BatchUpdateResponse.BatchUpdateError(item.getId(), "Order index already exists in course"));
-                        failureCount++;
-                        continue;
-                    }
+//                    boolean existsInDb = lessonRepository.existsByCourseIdAndOrderIndexAndIdNot(courseId, item.getOrderIndex(), lessonId);
+//                    if (existsInDb) {
+//                        errors.add(new BatchUpdateResponse.BatchUpdateError(item.getId(), "Order index already exists in course"));
+//                        failureCount++;
+//                        continue;
+//                    }
 
                     lesson.setOrderIndex(item.getOrderIndex());
                     hasChanges = true;

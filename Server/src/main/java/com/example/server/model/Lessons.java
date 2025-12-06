@@ -70,4 +70,7 @@ public class Lessons {
 
     @Column(name = "UpdatedAt")
     private Date updatedAt;
+
+    @Column(name = "IsDelete")
+    private Boolean isDelete;
 }

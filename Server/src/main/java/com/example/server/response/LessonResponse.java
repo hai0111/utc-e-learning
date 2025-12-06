@@ -23,6 +23,7 @@ public class LessonResponse {
     private String url;
     private LessonType type;
     private Boolean isActive;
+    private Boolean isDelete;
     private Integer orderIndex;
     private UUID createdBy;
     private String createdByName;
@@ -45,6 +46,7 @@ public class LessonResponse {
         response.setUrl(lesson.getUrl());
         response.setType(lesson.getLessonType());
         response.setIsActive(lesson.getIsActive());
+        response.setIsDelete(lesson.getIsDelete());
         response.setOrderIndex(lesson.getOrderIndex());
         response.setCreatedAt(new Date());
         response.setUpdatedAt(new Date());
