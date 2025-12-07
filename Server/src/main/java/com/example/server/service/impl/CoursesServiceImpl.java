@@ -99,7 +99,7 @@ public class CoursesServiceImpl implements CoursesService {
         if (FilterRoleUtil.checkRole(authentication).equals(Role.STUDENT) || FilterRoleUtil.checkRole(authentication).equals(Role.ADMIN)) {
             throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
         }
-        if (coursesRepository.existsAllByTitle(coursesRequest.getTitle())) {
+        if (coursesRepository.existsAllByTitleAndIsActive(coursesRequest.getTitle(), true)) {
             throw new CustomServiceException("Course title already exists", HttpStatus.CONFLICT);
         }
         Courses courses = new Courses();
@@ -123,13 +123,13 @@ public class CoursesServiceImpl implements CoursesService {
         if (users == null) {
             throw new CustomServiceException("User does not exist", HttpStatus.BAD_REQUEST);
         }
-        Courses courses = coursesRepository.findByIdAndIsActive(courseId, true);
-        if (courses == null) {
-            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
-        }
         // ADMIN and STUDENT roles will not have rights to this function.
         if (FilterRoleUtil.checkRole(authentication).equals(Role.STUDENT)) {
             throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
+        }
+        Courses courses = coursesRepository.findById(courseId).orElse(null);
+        if (courses == null) {
+            throw new CustomServiceException("This course does not exist", HttpStatus.NOT_FOUND);
         }
         // ADMIN is only allowed to update author and course status
         Courses savedCourse = null;
@@ -145,11 +145,15 @@ public class CoursesServiceImpl implements CoursesService {
             throw new CustomServiceException("You are not the creator of this course so you do not have editing rights.", HttpStatus.FORBIDDEN);
         }
         if (!courses.getTitle().equals(coursesRequest.getTitle())) {
-            if (coursesRepository.existsAllByTitle(coursesRequest.getTitle())) {
+            if (coursesRepository.existsAllByTitleAndIsActive(coursesRequest.getTitle(), true)) {
                 throw new CustomServiceException("Course title already exists", HttpStatus.CONFLICT);
             }
         }
-        courses.setId(courseId);
+        if (coursesRequest.getIsActive() == true) {
+            if (coursesRepository.existsAllByTitle(coursesRequest.getTitle())) {
+                throw new CustomServiceException("A course with the same title already exists so this course cannot be displayed again.", HttpStatus.CONFLICT);
+            }
+        }
         courses.setUsers(Users.builder().id(userDetails.getId()).build());
         courses.setIsActive(coursesRequest.getIsActive());
         courses.setTitle(coursesRequest.getTitle());

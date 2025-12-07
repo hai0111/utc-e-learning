@@ -106,5 +106,7 @@ public interface CoursesRepository extends JpaRepository<Courses, UUID> {
             "WHERE e.course.id =:courseId and e.users.id = :instructorId and c.isActive = true")
     Courses findByIdAndIsActiveAndInstructorId(UUID courseId, Boolean isActive, UUID instructorId);
 
+    Boolean existsAllByTitleAndIsActive(String title, Boolean isActive);
+
     Boolean existsAllByTitle(String title);
 }
