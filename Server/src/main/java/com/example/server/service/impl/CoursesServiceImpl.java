@@ -99,6 +99,9 @@ public class CoursesServiceImpl implements CoursesService {
         if (FilterRoleUtil.checkRole(authentication).equals(Role.STUDENT) || FilterRoleUtil.checkRole(authentication).equals(Role.ADMIN)) {
             throw new CustomServiceException("No access", HttpStatus.FORBIDDEN);
         }
+        if (coursesRepository.existsAllByTitle(coursesRequest.getTitle())) {
+            throw new CustomServiceException("Course title already exists", HttpStatus.CONFLICT);
+        }
         Courses courses = new Courses();
         courses.setUsers(Users.builder().id(userDetails.getId()).build());
         courses.setIsActive(coursesRequest.getIsActive());
@@ -141,6 +144,12 @@ public class CoursesServiceImpl implements CoursesService {
         if (!courses.getUsers().getId().equals(userDetails.getId())) {
             throw new CustomServiceException("You are not the creator of this course so you do not have editing rights.", HttpStatus.FORBIDDEN);
         }
+        if (!courses.getTitle().equals(coursesRequest.getTitle())) {
+            if (coursesRepository.existsAllByTitle(coursesRequest.getTitle())) {
+                throw new CustomServiceException("Course title already exists", HttpStatus.CONFLICT);
+            }
+        }
+        courses.setId(courseId);
         courses.setUsers(Users.builder().id(userDetails.getId()).build());
         courses.setIsActive(coursesRequest.getIsActive());
         courses.setTitle(coursesRequest.getTitle());
