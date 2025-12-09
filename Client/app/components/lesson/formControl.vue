@@ -1,5 +1,6 @@
 <template>
   <v-form
+    :disabled="disabled"
     class="grid grid-cols-2 gap-y-3 gap-x-9 mt-5 create-lesson"
     ref="form"
   >
@@ -13,7 +14,12 @@
 
     <div class="flex items-center gap-3">
       Choose type:
-      <v-btn-toggle v-model="modelValue.type" color="primary" density="compact">
+      <v-btn-toggle
+        v-model="modelValue.type"
+        :disabled="disabled"
+        color="primary"
+        density="compact"
+      >
         <v-btn :value="ELessonTypes.VIDEO">
           <v-icon>mdi-video</v-icon>
         </v-btn>
@@ -22,14 +28,16 @@
           <v-icon>mdi-file-pdf-box </v-icon>
         </v-btn>
 
-        <!-- <v-btn :value="ELessonTypes.QUIZ">
-                  <v-icon>mdi-head-question </v-icon>
-                </v-btn> -->
+        <v-btn :value="ELessonTypes.QUIZ">
+          <v-icon>mdi-head-question </v-icon>
+        </v-btn>
       </v-btn-toggle>
     </div>
 
     <div class="col-span-2">
       <VFileUpload
+        :disabled="disabled"
+        v-model="modelValue.file"
         density="comfortable"
         variant="comfortable"
         :filter-by-type="acceptFiles"
@@ -44,7 +52,7 @@
         show-ticks="always"
         step="1"
         :min="1"
-        :max="lessonsData.length"
+        :max="data.length"
         tick-size="4"
         thumb-size="15"
         thumb-label="always"
@@ -64,7 +72,7 @@
         </div>
 
         <div>
-          <template v-if="(modelValue.orderIndex ?? 0) < lessonsData.length">
+          <template v-if="(modelValue.orderIndex ?? 0) < data.length">
             After:
             <div>
               <strong> {{ orderIndexDetail.after }} </strong>
@@ -79,16 +87,17 @@
 <script setup lang="ts">
 import { cloneDeep } from "lodash";
 import { VFileUpload } from "vuetify/labs/VFileUpload";
-import { ELessonTypes, type ILesson, type ILessonForm } from "~/types/lesson";
+import CourseService from "~/services/course.service";
+import { ELessonTypes, type ILessonForm } from "~/types/lesson";
 
 const props = withDefaults(
-  defineProps<{ modelValue: Partial<ILessonForm> }>(),
+  defineProps<{ modelValue: Partial<ILessonForm>; disabled?: boolean }>(),
   {
     modelValue() {
       return cloneDeep({
         isActive: true,
         type: ELessonTypes.VIDEO,
-        orderIndex: 1,
+        orderIndex: 0,
       });
     },
   }
@@ -111,50 +120,20 @@ const acceptFiles = computed(() => {
   }
 });
 
-const lessonTypeOptions = [
-  {
-    title: "Video",
-    value: ELessonTypes.VIDEO,
-    color: "blue",
-  },
-  {
-    title: "PDF",
-    value: ELessonTypes.DOCUMENT,
-    color: "purple",
-  },
-  {
-    title: "Quiz",
-    value: ELessonTypes.QUIZ,
-    color: "green",
-  },
-];
+const { params } = useRoute();
 
-const lessonsData = ref<ILesson[]>(
-  Array.from({ length: 10 }, (_, i) => {
-    const type = lessonTypeOptions[i % lessonTypeOptions.length]!.value;
-
-    const titles = {
-      [ELessonTypes.VIDEO]: `Lesson ${i + 1}: Introduction to JavaScript`,
-      [ELessonTypes.DOCUMENT]: `Lesson ${i + 1}: Advanced Concepts`,
-      [ELessonTypes.QUIZ]: `Lesson ${i + 1}: Practice Quiz`,
-    };
-
-    return {
-      id: (i + 1).toString(),
-      orderIndex: i + 1,
-      title: titles[type as keyof typeof titles],
-      type,
-      url: `https://example.com/lesson-${i + 1}`,
-      isActive: i % 2 === 0,
-    };
-  })
+const { data } = useAsyncData(
+  `course/${params.id as string}/lessons-for-create`,
+  () => CourseService.getLessons((params.id as string) ?? ""),
+  { default: () => [] }
 );
 
 const orderIndexDetail = computed(() => {
-  const currentIndex = props.modelValue.orderIndex ?? 1;
+  const currentIndex = props.modelValue.orderIndex ?? 0;
+
   return {
-    before: lessonsData.value[currentIndex - 2]?.title,
-    after: lessonsData.value[currentIndex - 1]?.title,
+    before: data.value[currentIndex - 1]?.title,
+    after: data.value[currentIndex]?.title,
   };
 });
 </script>

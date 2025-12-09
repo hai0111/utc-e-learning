@@ -7,3 +7,7 @@ export const toastSuccess = (message: string) => {
 export const toastError = (message: string) => {
   toast(message, { type: "error" });
 };
+
+export const toastWarning = (message: string) => {
+  toast(message, { type: "warning" });
+};

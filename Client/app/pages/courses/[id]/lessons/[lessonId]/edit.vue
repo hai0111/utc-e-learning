@@ -25,11 +25,33 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep } from "lodash";
 import { toast } from "vue3-toastify";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import CourseService from "~/services/course.service";
 import { ELessonTypes, type ILessonForm } from "~/types/lesson";
 
 const route = useRoute();
+
+const { params } = useRoute();
+
+const { data: lessonDataOriginal, refresh } = useAsyncData(
+  `course/${params.id as string}/lessons/${params.lessonId as string}`,
+  () =>
+    CourseService.getLessonDetail(
+      params.id as string,
+      params.lessonId as string
+    ),
+  {
+    default: () => ({
+      isActive: true,
+      type: ELessonTypes.VIDEO,
+      orderIndex: 0,
+    }),
+  }
+);
+
+const router = useRouter();
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -45,13 +67,17 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-const router = useRouter();
+const formValues = ref<Partial<ILessonForm>>({});
 
-const formValues = ref<Partial<ILessonForm>>({
-  isActive: true,
-  type: ELessonTypes.VIDEO,
-  orderIndex: 1,
-});
+watch(
+  lessonDataOriginal,
+  (val) => {
+    formValues.value = cloneDeep(val);
+  },
+  {
+    immediate: true,
+  }
+);
 
 const onCancel = () => {
   router.push(`/courses/${route.params.id}`);
