@@ -20,7 +20,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
-            "WHERE l.course.id = :courseId AND l.isDelete = false " +
+            "WHERE l.course.id = :courseId AND l.isDelete != true " +
             "ORDER BY l.orderIndex ASC")
     List<LessonResponse> findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(@Param("courseId") UUID courseId);
 
@@ -32,7 +32,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.course.id = :courseId " +
-            "AND l.course.users.id = :instructorId AND l.isDelete = false " +
+            "AND l.createdBy.id = :instructorId AND l.isDelete != true " +
             "ORDER BY l.orderIndex ASC")
     List<LessonResponse> findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(
             @Param("courseId") UUID courseId,
@@ -45,7 +45,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
-            "WHERE l.course.id = :courseId AND l.isDelete = false AND l.isActive = true " +
+            "WHERE l.course.id = :courseId AND l.isDelete != true AND l.isActive = true " +
             "AND l.course.id IN (SELECT e.course.id FROM Enrollment e WHERE e.users.id = :studentId) " +
             "ORDER BY l.orderIndex ASC")
     List<LessonResponse> findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(
@@ -72,7 +72,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.id = :id AND l.course.id = :courseId AND l.isActive = true " +
-            "AND l.course.users.id = :instructorId")
+            "AND l.createdBy.id = :instructorId")
     Optional<LessonResponse> findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(
             @Param("id") UUID id,
             @Param("courseId") UUID courseId,
