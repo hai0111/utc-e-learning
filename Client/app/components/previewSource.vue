@@ -1,7 +1,7 @@
 <template>
   <template v-if="!reRendering">
     <vue-plyr v-if="type === ELessonTypes.VIDEO">
-      <video autoplay :src="src" v-bind="$attrs"></video>
+      <video :src="src" v-bind="$attrs"></video>
     </vue-plyr>
 
     <iframe

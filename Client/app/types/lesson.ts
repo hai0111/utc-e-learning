@@ -27,6 +27,7 @@ export interface ILessonForm {
   orderIndex: number;
   file: File;
   isActive: boolean;
+  orderIndexClient?: number;
 }
 
 export interface ILessonBatchUpdateItem {

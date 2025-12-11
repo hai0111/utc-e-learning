@@ -118,7 +118,7 @@
         <preview-source
           v-if="previewModal.lesson"
           :type="previewModal.lesson.type"
-          src="/Chuong3_TKCoDoiThu.pdf"
+          :src="previewModal.lesson.url"
           class="h-[80vh] min-w-[1200px] max-w-[80vw]"
         />
       </v-card-text>

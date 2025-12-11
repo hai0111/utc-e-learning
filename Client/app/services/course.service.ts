@@ -107,6 +107,19 @@ class Course extends BaseService {
     return res.data;
   }
 
+  async editLesson(
+    courseId: string,
+    lessonId: string,
+    formValues: ILessonForm
+  ) {
+    const res = await this.instance.put<ILesson[]>(
+      `/courses/${courseId}/lessons/edit/${lessonId}`,
+      formValues
+    );
+
+    return res.data;
+  }
+
   async getLessonDetail(courseId: string, lessonId: string) {
     const res = await this.instance.get<ILesson>(
       `/courses/${courseId}/lessons/${lessonId}`

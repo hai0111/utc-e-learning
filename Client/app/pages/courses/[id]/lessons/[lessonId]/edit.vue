@@ -9,7 +9,11 @@
 
       <v-card class="w-full">
         <v-card-text>
-          <lesson-form-control v-model="formValues" ref="form" />
+          <lesson-form-control
+            v-model="formValues"
+            :mode="EFormType.EDIT"
+            ref="form"
+          />
         </v-card-text>
       </v-card>
 
@@ -28,6 +32,8 @@
 import { cloneDeep } from "lodash";
 import { toast } from "vue3-toastify";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import { EFormType } from "~/constants/common";
+import { DEFAULT_MESSAGES } from "~/constants/messages";
 import CourseService from "~/services/course.service";
 import { ELessonTypes, type ILessonForm } from "~/types/lesson";
 
@@ -84,12 +90,27 @@ const onCancel = () => {
 };
 
 const form = ref();
+
+const isLoading = ref(false);
+
 const onSave = async () => {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  toast("Create successfully", {
-    type: "success",
-  });
+
+  isLoading.value = true;
+  try {
+    await CourseService.editLesson(
+      route.params.id as string,
+      route.params.lessonId as string,
+      formValues.value as ILessonForm
+    );
+    await navigateTo(`/courses/${route.params.id}`);
+    toastSuccess(DEFAULT_MESSAGES.apiSuccess);
+  } catch (err) {
+    toastError(DEFAULT_MESSAGES.apiError);
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
