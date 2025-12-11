@@ -56,7 +56,7 @@ const router = useRouter();
 const formValues = ref<Partial<ILessonForm>>({
   isActive: true,
   type: ELessonTypes.VIDEO,
-  orderIndex: 0,
+  orderIndex: 1,
 });
 
 const onCancel = () => {
