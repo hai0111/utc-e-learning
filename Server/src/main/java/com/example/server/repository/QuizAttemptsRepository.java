@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface QuizAttemptRepository extends JpaRepository<QuizAttempts, UUID> {
+public interface QuizAttemptsRepository extends JpaRepository<QuizAttempts, UUID> {
     List<QuizAttempts> findByEnrollment_Id(UUID enrollmentId);
 
     // If you need to check specific quiz history for a student

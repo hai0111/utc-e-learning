@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface QuizAnswerRepository extends JpaRepository<QuizAnswers, UUID> {
+public interface QuizAnswersRepository extends JpaRepository<QuizAnswers, UUID> {
     // Get all answers submitted for a specific attempt
     List<QuizAnswers> findByQuizAttempts_Id(UUID attemptId);
 }

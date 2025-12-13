@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QuizAttemptServiceImpl implements QuizAttemptService {
 
-    private final QuizAttemptRepository attemptRepo;
-    private final QuizQuestionRepository questionRepo;
-    private final QuizOptionRepository optionRepo;
-    private final QuizAnswerRepository answerRepo;
+    private final QuizAttemptsRepository attemptRepo;
+    private final QuizQuestionsRepository questionRepo;
+    private final QuizOptionsRepository optionRepo;
+    private final QuizAnswersRepository answerRepo;
 
     @Override
     public QuizAttemptDetailResponse getAttemptResult(UUID attemptId) {
