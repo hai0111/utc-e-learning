@@ -1,6 +1,7 @@
 package com.example.server.request;
 
 import com.example.server.enums.LessonType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,8 +27,8 @@ public class LessonRequest {
 
     private Integer orderIndex;
 
-    private MultipartFile file;
-
     private Boolean isActive;
 
+    @Valid
+    private QuizzesRequest quizzesRequest;
 }

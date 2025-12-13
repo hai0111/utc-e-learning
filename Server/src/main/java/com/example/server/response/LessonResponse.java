@@ -1,5 +1,6 @@
 package com.example.server.response;
 
+import com.example.server.dto.LessonsDto;
 import com.example.server.enums.LessonType;
 import com.example.server.model.Lessons;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -29,6 +30,7 @@ public class LessonResponse {
     private String createdByName;
     private UUID updatedBy;
     private String updatedByName;
+    private QuizzesResponse quizzesResponse;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonProperty("created_at")
@@ -48,8 +50,9 @@ public class LessonResponse {
         response.setIsActive(lesson.getIsActive());
         response.setIsDelete(lesson.getIsDelete());
         response.setOrderIndex(lesson.getOrderIndex());
-        response.setCreatedAt(new Date());
-        response.setUpdatedAt(new Date());
+        response.setCreatedAt(lesson.getCreatedAt());
+        response.setUpdatedAt(lesson.getUpdatedAt());
+        response.setQuizzesResponse(QuizzesResponse.getQuizzesResponse(lesson.getQuizzes()));
 
         // Set createdBy user info
         if (lesson.getCreatedBy() != null) {
@@ -63,6 +66,25 @@ public class LessonResponse {
             response.setUpdatedByName(lesson.getUpdatedBy().getName());
         }
 
+        return response;
+    }
+
+    public static LessonResponse convertToResponse(LessonsDto lessonsDto) {
+        LessonResponse response = new LessonResponse();
+        response.setId(lessonsDto.getId());
+        response.setCourseId(lessonsDto.getCourseId());
+        response.setTitle(lessonsDto.getTitle());
+        response.setUrl(lessonsDto.getUrl());
+        response.setType(LessonType.valueOf(lessonsDto.getLessonType()));
+        response.setIsActive(lessonsDto.getIsActive());
+        response.setIsDelete(lessonsDto.getIsDelete());
+        response.setOrderIndex(lessonsDto.getOrderIndex());
+        response.setCreatedAt(lessonsDto.getCreatedAt());
+        response.setUpdatedAt(lessonsDto.getUpdatedAt());
+        response.setCreatedBy(lessonsDto.getCreatedById());
+        response.setCreatedByName(lessonsDto.getCreatedByName());
+        response.setUpdatedBy(lessonsDto.getUpdatedById());
+        response.setUpdatedByName(lessonsDto.getUpdatedByName());
         return response;
     }
 }

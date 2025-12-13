@@ -1,9 +1,12 @@
 package com.example.server.service.impl;
 
+import com.example.server.dto.LessonsDto;
+import com.example.server.enums.LessonType;
 import com.example.server.enums.Role;
 import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Courses;
 import com.example.server.model.Lessons;
+import com.example.server.model.Quizzes;
 import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
 import com.example.server.repository.LessonRepository;
@@ -17,6 +20,7 @@ import com.example.server.response.LessonResponse;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.CloudinaryService;
 import com.example.server.service.LessonService;
+import com.example.server.service.QuizzesService;
 import com.example.server.utils.FilterRoleUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +45,7 @@ public class LessonServiceImpl implements LessonService {
     private final UsersRepository usersRepository;
     private final CoursesRepository courseRepository;
     private final CloudinaryService cloudinaryService;
+    private final QuizzesService quizzesService;
 
     @Override
     public ApiResponse<List<LessonResponse>> getListLessons(UUID courseId) {
@@ -49,7 +54,7 @@ public class LessonServiceImpl implements LessonService {
         UUID currentUserId = userDetails.getId();
         Role role = FilterRoleUtil.checkRole(authentication);
 
-        List<LessonResponse> lessons = switch (role) {
+        List<LessonsDto> lessonsDto = switch (role) {
             case ADMIN -> lessonRepository.findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(courseId);
             case INSTRUCTOR ->
                     lessonRepository.findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(courseId, currentUserId);
@@ -57,8 +62,8 @@ public class LessonServiceImpl implements LessonService {
                     lessonRepository.findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(courseId, currentUserId);
             default -> throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
         };
-
-        return new ApiResponse<>(200, "Success", lessons);
+        List<LessonResponse> lessonResponseList = lessonsDto.stream().map(LessonResponse::convertToResponse).toList();
+        return new ApiResponse<>(200, "Success", lessonResponseList);
     }
 
     @Override
@@ -68,7 +73,7 @@ public class LessonServiceImpl implements LessonService {
         UUID currentUserId = userDetails.getId();
         Role role = FilterRoleUtil.checkRole(authentication);
 
-        LessonResponse lessonResponse = switch (role) {
+        LessonsDto lessonsDto = switch (role) {
             case ADMIN -> lessonRepository.findByIdAndCourseIdAndIsActiveTrue(lessonId, courseId).orElse(null);
             case INSTRUCTOR ->
                     lessonRepository.findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
@@ -77,15 +82,16 @@ public class LessonServiceImpl implements LessonService {
             default -> throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
         };
 
-        if (lessonResponse == null) {
+        if (lessonsDto == null) {
             throw new CustomServiceException("Lesson not found", HttpStatus.NOT_FOUND);
         }
-
+        LessonResponse lessonResponse = LessonResponse.convertToResponse(lessonsDto);
         return new ApiResponse<>(200, "Get lesson successfully", lessonResponse);
     }
 
     @Override
-    public ApiResponse<Object> createLesson(LessonRequest lessonRequest, UUID courseId) {
+    @Transactional
+    public ApiResponse<Object> createLesson(LessonRequest lessonRequest, UUID courseId, MultipartFile file) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
@@ -115,11 +121,10 @@ public class LessonServiceImpl implements LessonService {
 
         // Check if lesson with same title already exists
         if (lessonRepository.existsByCourseIdAndTitleAndIsActiveTrue(courseId, lessonRequest.getTitle())) {
-            throw new CustomServiceException("Lesson with this title already exists in the course", HttpStatus.BAD_REQUEST);
+            throw new CustomServiceException("Lesson with this title already exists in the course", HttpStatus.CONFLICT);
         }
 
         // Validate file
-        MultipartFile file = lessonRequest.getFile();
         if (file == null || file.isEmpty()) {
             throw new CustomServiceException("File is required", HttpStatus.BAD_REQUEST);
         }
@@ -129,19 +134,23 @@ public class LessonServiceImpl implements LessonService {
             throw new CustomServiceException("File size must be less than 100MB", HttpStatus.BAD_REQUEST);
         }
 
-        String cloudinaryUrl;
-        try {
-            // Upload file to Cloudinary
-            String folderName = "course-" + courseId.toString();
-            cloudinaryUrl = cloudinaryService.uploadFile(file, folderName);
-        } catch (Exception e) {
-            throw new CustomServiceException("Failed to upload file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
+        String cloudinaryUrl = null;
+        Quizzes quizzes = null;
         try {
             // Get the maximum orderIndex for this course and increment by 1
             Integer maxOrderIndex = lessonRepository.findMaxOrderIndexByCourseId(courseId);
             Integer newOrderIndex = (maxOrderIndex != null ? maxOrderIndex : 0) + 1;
+
+            if (lessonRequest.getType().equals(LessonType.QUIZ)) {
+                quizzes = quizzesService.createQuizzes(lessonRequest.getQuizzesRequest());
+            }
+
+            try {
+                String folderName = "course-" + courseId.toString();
+                cloudinaryUrl = cloudinaryService.uploadFile(file, folderName);
+            } catch (Exception e) {
+                throw new CustomServiceException("Failed to upload file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
             // Create lesson entity
             Lessons lesson = new Lessons();
@@ -156,7 +165,7 @@ public class LessonServiceImpl implements LessonService {
             lesson.setUpdatedBy(user);
             lesson.setCreatedAt(new Date());
             lesson.setUpdatedAt(new Date());
-
+            lesson.setQuizzes(quizzes);
             Lessons savedLesson = lessonRepository.save(lesson);
 
             // Convert to response using static method

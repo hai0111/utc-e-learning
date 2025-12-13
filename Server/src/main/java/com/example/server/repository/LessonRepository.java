@@ -1,7 +1,7 @@
 package com.example.server.repository;
 
+import com.example.server.dto.LessonsDto;
 import com.example.server.model.Lessons;
-import com.example.server.response.LessonResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,80 +14,98 @@ import java.util.UUID;
 @Repository
 public interface LessonRepository extends JpaRepository<Lessons, UUID> {
     // For Admin - Get all lessons in a course
-    @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
-            "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
+    @Query("SELECT l.id as id, l.course.id as courseId, l.title as title, l.url as url, " +
+            "l.lessonType as lessonType, l.isActive as isActive, l.isDelete as isDelete, " +
+            "l.orderIndex as orderIndex, " +
+            "l.createdBy.id as createdById, creator.name as createdByName, " +
+            "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.course.id = :courseId AND l.isDelete != true " +
             "ORDER BY l.orderIndex ASC")
-    List<LessonResponse> findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(@Param("courseId") UUID courseId);
+    List<LessonsDto> findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(@Param("courseId") UUID courseId);
 
     // For Instructor - Get lessons in courses they own
-    @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
-            "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
+    @Query("SELECT l.id as id, l.course.id as courseId, l.title as title, l.url as url, " +
+            "l.lessonType as lessonType, l.isActive as isActive, l.isDelete as isDelete, " +
+            "l.orderIndex as orderIndex, " +
+            "l.createdBy.id as createdById, creator.name as createdByName, " +
+            "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.course.id = :courseId " +
             "AND l.createdBy.id = :instructorId AND l.isDelete != true " +
             "ORDER BY l.orderIndex ASC")
-    List<LessonResponse> findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(
+    List<LessonsDto> findByCourseIdAndInstructorIdAndIsActiveTrueOrderByOrderIndexAsc(
             @Param("courseId") UUID courseId,
             @Param("instructorId") UUID instructorId);
 
     // For Student - Get lessons in courses they enrolled
-    @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
-            "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
+    @Query("SELECT l.id as id, l.course.id as courseId, l.title as title, l.url as url, " +
+            "l.lessonType as lessonType, l.isActive as isActive, l.isDelete as isDelete, " +
+            "l.orderIndex as orderIndex, " +
+            "l.createdBy.id as createdById, creator.name as createdByName, " +
+            "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.course.id = :courseId AND l.isDelete != true AND l.isActive = true " +
             "AND l.course.id IN (SELECT e.course.id FROM Enrollment e WHERE e.users.id = :studentId) " +
             "ORDER BY l.orderIndex ASC")
-    List<LessonResponse> findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(
+    List<LessonsDto> findByCourseIdAndStudentIdAndIsActiveTrueOrderByOrderIndexAsc(
             @Param("courseId") UUID courseId,
             @Param("studentId") UUID studentId);
 
     // Get single lesson for Admin
-    @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
-            "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
+    @Query("SELECT l.id as id, l.course.id as courseId, l.title as title, l.url as url, " +
+            "l.lessonType as lessonType, l.isActive as isActive, l.isDelete as isDelete, " +
+            "l.orderIndex as orderIndex, " +
+            "l.createdBy.id as createdById, creator.name as createdByName, " +
+            "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.id = :id AND l.course.id = :courseId AND l.isActive = true")
-    Optional<LessonResponse> findByIdAndCourseIdAndIsActiveTrue(
+    Optional<LessonsDto> findByIdAndCourseIdAndIsActiveTrue(
             @Param("id") UUID id,
             @Param("courseId") UUID courseId);
 
     // Get single lesson for Instructor
-    @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
-            "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
+    @Query("SELECT l.id as id, l.course.id as courseId, l.title as title, l.url as url, " +
+            "l.lessonType as lessonType, l.isActive as isActive, l.isDelete as isDelete, " +
+            "l.orderIndex as orderIndex, " +
+            "l.createdBy.id as createdById, creator.name as createdByName, " +
+            "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.id = :id AND l.course.id = :courseId AND l.isActive = true " +
             "AND l.createdBy.id = :instructorId")
-    Optional<LessonResponse> findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(
+    Optional<LessonsDto> findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(
             @Param("id") UUID id,
             @Param("courseId") UUID courseId,
             @Param("instructorId") UUID instructorId);
 
     // Get single lesson for Student
-    @Query("SELECT new com.example.server.response.LessonResponse(" +
-            "l.id, l.course.id, l.title, l.url, l.lessonType, l.isActive, l.isDelete, l.orderIndex, " +
-            "l.createdBy.id, creator.name, l.updatedBy.id, updater.name, l.createdAt, l.updatedAt) " +
+    @Query("SELECT l.id as id, l.course.id as courseId, l.title as title, l.url as url, " +
+            "l.lessonType as lessonType, l.isActive as isActive, l.isDelete as isDelete, " +
+            "l.orderIndex as orderIndex, " +
+            "l.createdBy.id as createdById, creator.name as createdByName, " +
+            "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
             "WHERE l.id = :id AND l.course.id = :courseId AND l.isActive = true " +
             "AND l.course.id IN (SELECT e.course.id FROM Enrollment e WHERE e.users.id = :studentId)")
-    Optional<LessonResponse> findByIdAndCourseIdAndStudentIdAndIsActiveTrue(
+    Optional<LessonsDto> findByIdAndCourseIdAndStudentIdAndIsActiveTrue(
             @Param("id") UUID id,
             @Param("courseId") UUID courseId,
             @Param("studentId") UUID studentId);
