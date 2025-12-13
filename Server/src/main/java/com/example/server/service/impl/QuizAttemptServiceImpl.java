@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 public class QuizAttemptServiceImpl implements QuizAttemptService {
 
     private final QuizAttemptRepository attemptRepo;
-    private final QuizQuestionRepository questionRepo;
-    private final QuizOptionRepository optionRepo;
+    private final QuizQuestionsRepository questionRepo;
+    private final QuizOptionsRepository optionRepo;
     private final QuizAnswerRepository answerRepo;
 
     @Override
