@@ -32,4 +32,6 @@ public interface LessonsDto {
     Date getCreatedAt();
 
     Date getUpdatedAt();
+
+    Double getCurrentPercent();
 }
