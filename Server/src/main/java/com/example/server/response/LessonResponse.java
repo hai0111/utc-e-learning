@@ -53,7 +53,6 @@ public class LessonResponse {
         response.setOrderIndex(lesson.getOrderIndex());
         response.setCreatedAt(lesson.getCreatedAt());
         response.setUpdatedAt(lesson.getUpdatedAt());
-        response.setQuizzesResponse(QuizzesResponse.getQuizzesResponse(lesson.getQuizzes()));
 
         // Set createdBy user info
         if (lesson.getCreatedBy() != null) {
@@ -65,6 +64,12 @@ public class LessonResponse {
         if (lesson.getUpdatedBy() != null) {
             response.setUpdatedBy(lesson.getUpdatedBy().getId());
             response.setUpdatedByName(lesson.getUpdatedBy().getName());
+        }
+
+        if (lesson.getQuizzes() != null) {
+            response.setQuizzesResponse(QuizzesResponse.getQuizzesResponse(lesson.getQuizzes()));
+        } else {
+            response.setQuizzesResponse(null);
         }
 
         return response;

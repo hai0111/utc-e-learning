@@ -10,13 +10,16 @@ import com.example.server.model.Quizzes;
 import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
 import com.example.server.repository.LessonRepository;
+import com.example.server.repository.QuizAttemptsRepository;
 import com.example.server.repository.UsersRepository;
-import com.example.server.request.LessonEditRequest;
 import com.example.server.request.LessonRequest;
 import com.example.server.request.UpdateLessonBatchRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.BatchUpdateResponse;
 import com.example.server.response.LessonResponse;
+import com.example.server.response.QuizOptionsResponse;
+import com.example.server.response.QuizQuestionResponse;
+import com.example.server.response.QuizzesResponse;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.CloudinaryService;
 import com.example.server.service.LessonService;
@@ -44,6 +47,8 @@ public class LessonServiceImpl implements LessonService {
     private final LessonRepository lessonRepository;
     private final UsersRepository usersRepository;
     private final CoursesRepository courseRepository;
+    private final QuizAttemptsRepository quizAttemptsRepository;
+
     private final CloudinaryService cloudinaryService;
     private final QuizzesService quizzesService;
 
@@ -73,20 +78,49 @@ public class LessonServiceImpl implements LessonService {
         UUID currentUserId = userDetails.getId();
         Role role = FilterRoleUtil.checkRole(authentication);
 
-        LessonsDto lessonsDto = switch (role) {
-            case ADMIN -> lessonRepository.findByIdAndCourseIdAndIsActiveTrue(lessonId, courseId).orElse(null);
-            case INSTRUCTOR ->
-                    lessonRepository.findByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
-            case STUDENT ->
-                    lessonRepository.findByIdAndCourseIdAndStudentIdAndIsActiveTrue(lessonId, courseId, currentUserId).orElse(null);
+        Optional<Lessons> lessonOptional = switch (role) {
+            case ADMIN -> lessonRepository.findLessonEntityByIdAndCourseIdAndIsActiveTrue(lessonId, courseId);
+            case INSTRUCTOR -> lessonRepository.findLessonEntityByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId);
+            case STUDENT -> lessonRepository.findLessonEntityByIdAndCourseIdAndIsActiveTrue(lessonId, courseId);
             default -> throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
         };
 
-        if (lessonsDto == null) {
+        if (lessonOptional.isEmpty()) {
             throw new CustomServiceException("Lesson not found", HttpStatus.NOT_FOUND);
         }
-        LessonResponse lessonResponse = LessonResponse.convertToResponse(lessonsDto);
+
+        Lessons lesson = lessonOptional.get();
+        LessonResponse lessonResponse = LessonResponse.convertToResponse(lesson);
+
+        if (lesson.getLessonType() == LessonType.QUIZ && lesson.getQuizzes() != null) {
+            Quizzes quiz = lesson.getQuizzes();
+
+            // Check if anyone has already taken this quiz.
+            boolean hasAttempts = quizAttemptsRepository.existsByQuizzesId(quiz.getId());
+
+            // Set this in the response so FE can check if it allows editing the question and options.
+            if (lessonResponse.getQuizzesResponse() != null) {
+                lessonResponse.getQuizzesResponse().setIsAttempted(hasAttempts);
+            }
+
+            if (role == Role.STUDENT) {
+                hideCorrectAnswers(lessonResponse.getQuizzesResponse());
+            }
+        }
         return new ApiResponse<>(200, "Get lesson successfully", lessonResponse);
+    }
+
+    // Hide the correct answer for the role as STUDENT => set isCorrect = null in response.
+    private void hideCorrectAnswers(QuizzesResponse quizzesResponse) {
+        if (quizzesResponse != null && quizzesResponse.getQuizQuestionsResponses() != null) {
+            for (QuizQuestionResponse q : quizzesResponse.getQuizQuestionsResponses()) {
+                if (q.getOptionsResponseList() != null) {
+                    for (QuizOptionsResponse o : q.getOptionsResponseList()) {
+                        o.setIsCorrect(null); // hide the answer
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -142,6 +176,9 @@ public class LessonServiceImpl implements LessonService {
             Integer newOrderIndex = (maxOrderIndex != null ? maxOrderIndex : 0) + 1;
 
             if (lessonRequest.getType().equals(LessonType.QUIZ)) {
+                if (lessonRequest.getQuizzesRequest() == null) {
+                    throw new CustomServiceException("Quiz data is required when lesson type is QUIZ", HttpStatus.BAD_REQUEST);
+                }
                 quizzes = quizzesService.createQuizzes(lessonRequest.getQuizzesRequest());
             }
 
@@ -188,7 +225,8 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public ApiResponse<Object> editLesson(LessonEditRequest lessonRequest, UUID courseId, UUID lessonId) {
+    @Transactional
+    public ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
@@ -222,7 +260,9 @@ public class LessonServiceImpl implements LessonService {
             throw new CustomServiceException("Lesson with this title already exists in the course", HttpStatus.BAD_REQUEST);
         }
 
-        // Update fields
+        LessonType oldType = lesson.getLessonType();
+        Quizzes oldQuiz = lesson.getQuizzes(); // Save old quizzes to clean up if needed.
+
         lesson.setTitle(lessonRequest.getTitle());
         lesson.setUrl(lessonRequest.getUrl());
         lesson.setLessonType(lessonRequest.getType());
@@ -232,10 +272,48 @@ public class LessonServiceImpl implements LessonService {
         lesson.setUpdatedBy(user);
         lesson.setUpdatedAt(new Date());
 
-        Lessons updatedLesson = lessonRepository.save(lesson);
+        // Change lesson type to QUIZ from VIDEO/DOC
+        if (oldType == LessonType.QUIZ && lessonRequest.getType() != LessonType.QUIZ) {
+            lesson.setQuizzes(null);
+            // You need to save the lesson beforehand to disable foreign keys, which will allow QuizzesService to delete the quiz.
+            lessonRepository.saveAndFlush(lesson);
 
-        // Convert to response
-        LessonResponse response = LessonResponse.convertToResponse(updatedLesson);
+            if (oldQuiz != null) {
+                // Call QuizService and let it automatically check if it should be deleted
+                quizzesService.deleteQuizIfUnused(oldQuiz.getId());
+            }
+        }
+
+        // Change lesson type to VIDEO/DOC from QUIZ
+        else if (oldType != LessonType.QUIZ && lessonRequest.getType() == LessonType.QUIZ) {
+            if (lessonRequest.getQuizzesRequest() != null) {
+                Quizzes newQuiz = quizzesService.createQuizzes(lessonRequest.getQuizzesRequest());
+                lesson.setQuizzes(newQuiz);
+            }
+        }
+
+        // Still a quiz -> content needs to be updated
+        else if (lessonRequest.getType() == LessonType.QUIZ && lessonRequest.getQuizzesRequest() != null) {
+            Quizzes currentQuiz = lesson.getQuizzes();
+
+            if (currentQuiz == null) {
+                // Type is Quiz but the database is null -> Create new
+                Quizzes newQuiz = quizzesService.createQuizzes(lessonRequest.getQuizzesRequest());
+                lesson.setQuizzes(newQuiz);
+            } else {
+                // Update quiz
+                Quizzes updatedQuiz = quizzesService.updateQuizzes(currentQuiz, lessonRequest.getQuizzesRequest());
+
+                // Reassign (in case Clone creates a new quiz)
+                if (!updatedQuiz.getId().equals(currentQuiz.getId())) {
+                    lesson.setQuizzes(updatedQuiz);
+                }
+            }
+        }
+
+        Lessons savedLesson = lessonRepository.save(lesson);
+        LessonResponse response = LessonResponse.convertToResponse(savedLesson);
+
         return new ApiResponse<>(200, "Update lesson successfully", response);
     }
 

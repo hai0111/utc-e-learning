@@ -13,4 +13,7 @@ public interface QuizAttemptsRepository extends JpaRepository<QuizAttempts, UUID
 
     // If you need to check specific quiz history for a student
     List<QuizAttempts> findByEnrollment_IdAndQuizzes_Id(UUID enrollmentId, UUID quizId);
+
+    // Check if anyone has already taken this quiz.
+    boolean existsByQuizzesId(UUID quizId);
 }

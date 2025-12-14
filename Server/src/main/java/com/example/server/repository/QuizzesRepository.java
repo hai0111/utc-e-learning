@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface QuizzesRepository extends JpaRepository<Quizzes, UUID> {
+
+    boolean existsByTitleAndIdNot(String title, UUID id);
 }
