@@ -50,7 +50,10 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "l.orderIndex as orderIndex, " +
             "l.createdBy.id as createdById, creator.name as createdByName, " +
             "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
-            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt, " +
+            "(SELECT COALESCE(p.progressPercentage, 0) FROM Progress p " +
+            " WHERE p.lessons.id = l.id " +
+            " AND p.enrollment.users.id = :studentId) as currentPercent " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +

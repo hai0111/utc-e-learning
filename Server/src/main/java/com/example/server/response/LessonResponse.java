@@ -31,6 +31,7 @@ public class LessonResponse {
     private UUID updatedBy;
     private String updatedByName;
     private QuizzesResponse quizzesResponse;
+    private Double currentPercent;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonProperty("created_at")
@@ -85,6 +86,7 @@ public class LessonResponse {
         response.setCreatedByName(lessonsDto.getCreatedByName());
         response.setUpdatedBy(lessonsDto.getUpdatedById());
         response.setUpdatedByName(lessonsDto.getUpdatedByName());
+        response.setCurrentPercent(lessonsDto.getCurrentPercent());
         return response;
     }
 }
