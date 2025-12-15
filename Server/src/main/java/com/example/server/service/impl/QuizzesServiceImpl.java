@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -164,6 +166,11 @@ public class QuizzesServiceImpl implements QuizzesService {
         List<QuizQuestions> quizQuestionsList = new ArrayList<>();
         if (requestList == null) return quizQuestionsList;
 
+        List<Integer> questionIndexes = requestList.stream()
+                .map(QuizQuestionsRequest::getOrderIndex)
+                .toList();
+        validateUniqueOrderIndex(questionIndexes, "Question");
+
         for (QuizQuestionsRequest quizQuestionRequest : requestList) {
             validateQuestionLogic(quizQuestionRequest);
 
@@ -178,12 +185,23 @@ public class QuizzesServiceImpl implements QuizzesService {
 
             List<QuizOptions> options = new ArrayList<>();
             if (quizQuestionRequest.getQuestionType() != QuestionType.TEXT && quizQuestionRequest.getOptionsRequestList() != null) {
-                for (QuizOptionsRequest oReq : quizQuestionRequest.getOptionsRequestList()) {
+                List<Integer> optionIndexes = quizQuestionRequest.getOptionsRequestList().stream()
+                        .map(QuizOptionsRequest::getOrderIndex)
+                        .toList();
+                try {
+                    validateUniqueOrderIndex(optionIndexes, "Option");
+                } catch (CustomServiceException e) {
+                    throw new CustomServiceException(
+                            "Error in question '" + quizQuestionRequest.getQuestionText() + "': " + e.getMessage(),
+                            HttpStatus.BAD_REQUEST
+                    );
+                }
+                for (QuizOptionsRequest quizOptionsRequest : quizQuestionRequest.getOptionsRequestList()) {
                     QuizOptions option = new QuizOptions();
                     option.setQuizQuestions(question);
-                    option.setOptionText(oReq.getOptionText());
-                    option.setIsCorrect(oReq.getIsCorrect());
-                    option.setOrderIndex(oReq.getOrderIndex());
+                    option.setOptionText(quizOptionsRequest.getOptionText());
+                    option.setIsCorrect(quizOptionsRequest.getIsCorrect());
+                    option.setOrderIndex(quizOptionsRequest.getOrderIndex());
                     option.setCreatedAt(new Date());
                     option.setUpdatedAt(new Date());
                     options.add(option);
@@ -224,6 +242,19 @@ public class QuizzesServiceImpl implements QuizzesService {
             // If there are multiple types of questions, there must be at least one correct answer.
             if (correctCount < 1) {
                 throw new CustomServiceException("Multiple choice question must have at least one correct answer.", HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+
+    private void validateUniqueOrderIndex(List<Integer> orderIndexes, String entityName) {
+        Set<Integer> uniqueIndexes = new HashSet<>();
+        for (Integer index : orderIndexes) {
+            if (index == null) {
+                throw new CustomServiceException(entityName + " order index cannot be null", HttpStatus.BAD_REQUEST);
+            } // Ignore null if allowed.
+            if (!uniqueIndexes.add(index)) {
+                // If add returns false, it means the item already exists in Set -> Duplicate.
+                throw new CustomServiceException("Duplicate " + entityName + " order index: " + index, HttpStatus.BAD_REQUEST);
             }
         }
     }

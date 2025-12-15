@@ -158,6 +158,14 @@ public class LessonServiceImpl implements LessonService {
             throw new CustomServiceException("Lesson with this title already exists in the course", HttpStatus.CONFLICT);
         }
 
+        // Check order index
+        if (lessonRequest.getOrderIndex() != null) {
+            boolean existsOrder = lessonRepository.existsByCourseIdAndOrderIndexAndIsActiveTrue(courseId, lessonRequest.getOrderIndex());
+            if (existsOrder) {
+                throw new CustomServiceException("Lesson order index " + lessonRequest.getOrderIndex() + " already exists in this course", HttpStatus.BAD_REQUEST);
+            }
+        }
+
         // Validate file
         if (file == null || file.isEmpty()) {
             throw new CustomServiceException("File is required", HttpStatus.BAD_REQUEST);
@@ -258,6 +266,16 @@ public class LessonServiceImpl implements LessonService {
         // Check if title is being changed and conflicts with existing lesson
         if (!lesson.getTitle().equals(lessonRequest.getTitle()) && lessonRepository.existsByCourseIdAndTitleAndIdNotAndIsActiveTrue(courseId, lessonRequest.getTitle(), lessonId)) {
             throw new CustomServiceException("Lesson with this title already exists in the course", HttpStatus.BAD_REQUEST);
+        }
+
+        // Check order index
+        if (lessonRequest.getOrderIndex() != null) {
+            boolean existsOrder = lessonRepository.existsByCourseIdAndOrderIndexAndIdNotAndIsActiveTrue(
+                    courseId, lessonRequest.getOrderIndex(), lessonId);
+
+            if (existsOrder) {
+                throw new CustomServiceException("Lesson order index " + lessonRequest.getOrderIndex() + " already exists in this course", HttpStatus.BAD_REQUEST);
+            }
         }
 
         LessonType oldType = lesson.getLessonType();

@@ -173,4 +173,8 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
 
     // Check how many lessons are using this quiz.
     long countByQuizzesId(UUID quizId);
+
+    boolean existsByCourseIdAndOrderIndexAndIsActiveTrue(UUID courseId, Integer orderIndex);
+
+    boolean existsByCourseIdAndOrderIndexAndIdNotAndIsActiveTrue(UUID courseId, Integer orderIndex, UUID lessonId);
 }
