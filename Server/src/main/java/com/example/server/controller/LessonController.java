@@ -1,6 +1,5 @@
 package com.example.server.controller;
 
-import com.example.server.request.LessonEditRequest;
 import com.example.server.request.LessonRequest;
 import com.example.server.request.UpdateLessonBatchRequest;
 import com.example.server.response.ApiResponse;
@@ -58,7 +57,7 @@ public class LessonController {
     public ResponseEntity<?> editLesson(
             @PathVariable UUID courseId,
             @PathVariable UUID lessonId,
-            @RequestBody @Valid LessonEditRequest lessonRequest) {
+            @RequestBody @Valid LessonRequest lessonRequest) {
         ApiResponse<Object> response = lessonService.editLesson(lessonRequest, courseId, lessonId);
         return ResponseEntity.ok(response);
     }

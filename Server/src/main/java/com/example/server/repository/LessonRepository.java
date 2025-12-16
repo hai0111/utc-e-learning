@@ -170,4 +170,11 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
     List<Lessons> searchLessonsByTitleAndCourse(
             @Param("title") String title,
             @Param("courseId") UUID courseId);
+
+    // Check how many lessons are using this quiz.
+    long countByQuizzesId(UUID quizId);
+
+    boolean existsByCourseIdAndOrderIndexAndIsActiveTrue(UUID courseId, Integer orderIndex);
+
+    boolean existsByCourseIdAndOrderIndexAndIdNotAndIsActiveTrue(UUID courseId, Integer orderIndex, UUID lessonId);
 }

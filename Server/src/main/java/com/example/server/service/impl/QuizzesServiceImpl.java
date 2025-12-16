@@ -7,6 +7,8 @@ import com.example.server.model.QuizOptions;
 import com.example.server.model.QuizQuestions;
 import com.example.server.model.Quizzes;
 import com.example.server.model.Users;
+import com.example.server.repository.LessonRepository;
+import com.example.server.repository.QuizAttemptsRepository;
 import com.example.server.repository.QuizOptionsRepository;
 import com.example.server.repository.QuizQuestionsRepository;
 import com.example.server.repository.QuizzesRepository;
@@ -25,7 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class QuizzesServiceImpl implements QuizzesService {
@@ -41,6 +46,12 @@ public class QuizzesServiceImpl implements QuizzesService {
 
     @Autowired
     private QuizOptionsRepository quizOptionsRepository;
+
+    @Autowired
+    private LessonRepository lessonRepository;
+
+    @Autowired
+    private QuizAttemptsRepository quizAttemptsRepository;
 
     @Override
     @Transactional
@@ -68,36 +79,138 @@ public class QuizzesServiceImpl implements QuizzesService {
         quizzes.setCreatedAt(new Date());
         quizzes.setUpdatedAt(new Date());
 
-        List<QuizQuestions> questionsRequestList = new ArrayList<>();
-        for (QuizQuestionsRequest quizQuestionRequest: quizzesRequest.getQuizQuestionsRequests()) {
+        List<QuizQuestions> questions = mapRequestToQuestionsAndOptions(quizzes, quizzesRequest.getQuizQuestionsRequests());
+        quizzes.setQuizQuestions(questions);
+        return quizzesRepository.save(quizzes);
+    }
+
+    @Override
+    @Transactional
+    public Quizzes updateQuizzes(Quizzes currentQuiz, QuizzesRequest quizzesRequest) {
+
+        if (!currentQuiz.getTitle().equals(quizzesRequest.getQuizTitle())
+                && quizzesRepository.existsByTitleAndIdNot(quizzesRequest.getQuizTitle(), currentQuiz.getId())) {
+            throw new CustomServiceException("Quiz with this title already exists", HttpStatus.BAD_REQUEST);
+        }
+
+        // Check if this quiz is being shared with another lesson.
+        long usageCount = lessonRepository.countByQuizzesId(currentQuiz.getId());
+        boolean isShared = usageCount > 1;
+
+        // Has any student already taken this quiz?
+        boolean hasAttempts = quizAttemptsRepository.existsByQuizzesId(currentQuiz.getId());
+
+        // If the quiz is shared -> Clone it into a new one (Separate lines)
+        if (isShared) {
+            return createQuizzes(quizzesRequest); // Call the create function again to create a new copy.
+        }
+
+        // If students have already taken the quiz -> Only edit the Title
+        if (hasAttempts) {
+            currentQuiz.setTitle(quizzesRequest.getQuizTitle());
+            currentQuiz.setUpdatedAt(new Date());
+
+            // Report an error if a quiz has already been completed by a student but you are still requesting edits.
+            if (quizzesRequest.getQuizQuestionsRequests() != null && !quizzesRequest.getQuizQuestionsRequests().isEmpty()) {
+                throw new CustomServiceException("The quiz has already been taken by students; only the title needs to be changed.", HttpStatus.BAD_REQUEST);
+            }
+            return quizzesRepository.save(currentQuiz);
+        }
+
+        // This quiz hasn't been taken by anyone yet and hasn't been assigned to any other lesson -> update quiz
+        return updateExistingQuizStructure(currentQuiz, quizzesRequest);
+    }
+
+    @Override
+    @Transactional
+    public void deleteQuizIfUnused(UUID quizId) {
+        if (quizId == null) return;
+
+        // Check if this quiz is being shared with another lesson
+        long usageCount = lessonRepository.countByQuizzesId(quizId);
+
+        // Has any student already taken this quiz
+        boolean hasAttempts = quizAttemptsRepository.existsByQuizzesId(quizId);
+
+        // usageCount <= 0 means that no lesson points to it anymore (after the previous lesson was set to null)
+        // Or usageCount <= 1 if the transaction has not committed to setting null
+        if (usageCount <= 1 && !hasAttempts) {
+            quizzesRepository.deleteById(quizId);
+        }
+    }
+
+    private Quizzes updateExistingQuizStructure(Quizzes currentQuiz, QuizzesRequest request) {
+        double totalScore = request.getQuizQuestionsRequests().stream()
+                .mapToDouble(QuizQuestionsRequest::getRawPoint).sum();
+
+        if (Math.abs(totalScore - 100.0) > 0.001) {
+            throw new CustomServiceException("Total score of all questions must be exactly 100. Current: " + totalScore, HttpStatus.BAD_REQUEST);
+        }
+
+        currentQuiz.setTitle(request.getQuizTitle());
+        currentQuiz.setUpdatedAt(new Date());
+
+        // Delete question old
+        currentQuiz.getQuizQuestions().clear();
+
+        // Create new questions
+        if (request.getQuizQuestionsRequests() != null) {
+            List<QuizQuestions> newQuestions = mapRequestToQuestionsAndOptions(currentQuiz, request.getQuizQuestionsRequests());
+            currentQuiz.getQuizQuestions().addAll(newQuestions);
+        }
+
+        return quizzesRepository.save(currentQuiz);
+    }
+
+    private List<QuizQuestions> mapRequestToQuestionsAndOptions(Quizzes quiz, List<QuizQuestionsRequest> requestList) {
+        List<QuizQuestions> quizQuestionsList = new ArrayList<>();
+        if (requestList == null) return quizQuestionsList;
+
+        List<Integer> questionIndexes = requestList.stream()
+                .map(QuizQuestionsRequest::getOrderIndex)
+                .toList();
+        validateUniqueOrderIndex(questionIndexes, "Question");
+
+        for (QuizQuestionsRequest quizQuestionRequest : requestList) {
             validateQuestionLogic(quizQuestionRequest);
-            QuizQuestions quizQuestion = new QuizQuestions();
-            quizQuestion.setQuizzes(quizzes);
-            quizQuestion.setQuestionText(quizQuestionRequest.getQuestionText());
-            quizQuestion.setOrderIndex(quizQuestionRequest.getOrderIndex());
-            quizQuestion.setQuestionType(quizQuestionRequest.getQuestionType());
-            quizQuestion.setRawPoint(quizQuestionRequest.getRawPoint());
-            quizQuestion.setCreatedAt(new Date());
-            quizQuestion.setUpdatedAt(new Date());
-            List<QuizOptions> optionsRequestList = List.of();
-            if (quizQuestionRequest.getOptionsRequestList() != null) {
-                optionsRequestList = new ArrayList<>();
-                for (QuizOptionsRequest optionsRequest: quizQuestionRequest.getOptionsRequestList()) {
-                    QuizOptions quizOptions = new QuizOptions();
-                    quizOptions.setOptionText(optionsRequest.getOptionText());
-                    quizOptions.setOrderIndex(optionsRequest.getOrderIndex());
-                    quizOptions.setIsCorrect(optionsRequest.getIsCorrect());
-                    quizOptions.setCreatedAt(new Date());
-                    quizOptions.setUpdatedAt(new Date());
-                    quizOptions.setQuizQuestions(quizQuestion);
-                    optionsRequestList.add(quizOptions);
+
+            QuizQuestions question = new QuizQuestions();
+            question.setQuizzes(quiz);
+            question.setQuestionText(quizQuestionRequest.getQuestionText());
+            question.setQuestionType(quizQuestionRequest.getQuestionType());
+            question.setRawPoint(quizQuestionRequest.getRawPoint());
+            question.setOrderIndex(quizQuestionRequest.getOrderIndex());
+            question.setCreatedAt(new Date());
+            question.setUpdatedAt(new Date());
+
+            List<QuizOptions> options = new ArrayList<>();
+            if (quizQuestionRequest.getQuestionType() != QuestionType.TEXT && quizQuestionRequest.getOptionsRequestList() != null) {
+                List<Integer> optionIndexes = quizQuestionRequest.getOptionsRequestList().stream()
+                        .map(QuizOptionsRequest::getOrderIndex)
+                        .toList();
+                try {
+                    validateUniqueOrderIndex(optionIndexes, "Option");
+                } catch (CustomServiceException e) {
+                    throw new CustomServiceException(
+                            "Error in question '" + quizQuestionRequest.getQuestionText() + "': " + e.getMessage(),
+                            HttpStatus.BAD_REQUEST
+                    );
+                }
+                for (QuizOptionsRequest quizOptionsRequest : quizQuestionRequest.getOptionsRequestList()) {
+                    QuizOptions option = new QuizOptions();
+                    option.setQuizQuestions(question);
+                    option.setOptionText(quizOptionsRequest.getOptionText());
+                    option.setIsCorrect(quizOptionsRequest.getIsCorrect());
+                    option.setOrderIndex(quizOptionsRequest.getOrderIndex());
+                    option.setCreatedAt(new Date());
+                    option.setUpdatedAt(new Date());
+                    options.add(option);
                 }
             }
-            quizQuestion.setOptions(optionsRequestList);
-            questionsRequestList.add(quizQuestion);
+            question.setOptions(options);
+            quizQuestionsList.add(question);
         }
-        quizzes.setQuizQuestions(questionsRequestList);
-        return quizzesRepository.save(quizzes);
+        return quizQuestionsList;
     }
 
     private void validateQuestionLogic(QuizQuestionsRequest request) {
@@ -129,6 +242,19 @@ public class QuizzesServiceImpl implements QuizzesService {
             // If there are multiple types of questions, there must be at least one correct answer.
             if (correctCount < 1) {
                 throw new CustomServiceException("Multiple choice question must have at least one correct answer.", HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+
+    private void validateUniqueOrderIndex(List<Integer> orderIndexes, String entityName) {
+        Set<Integer> uniqueIndexes = new HashSet<>();
+        for (Integer index : orderIndexes) {
+            if (index == null) {
+                throw new CustomServiceException(entityName + " order index cannot be null", HttpStatus.BAD_REQUEST);
+            } // Ignore null if allowed.
+            if (!uniqueIndexes.add(index)) {
+                // If add returns false, it means the item already exists in Set -> Duplicate.
+                throw new CustomServiceException("Duplicate " + entityName + " order index: " + index, HttpStatus.BAD_REQUEST);
             }
         }
     }

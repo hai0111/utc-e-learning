@@ -3,14 +3,12 @@ package com.example.server.response;
 import com.example.server.dto.LessonsDto;
 import com.example.server.enums.LessonType;
 import com.example.server.model.Lessons;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -32,16 +30,11 @@ public class LessonResponse {
     private String updatedByName;
     private QuizzesResponse quizzesResponse;
     private Double currentPercent;
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JsonProperty("created_at")
-    private Date createdAt;
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JsonProperty("updated_at")
-    private Date updatedAt;
+    private String createdAt;
+    private String updatedAt;
 
     public static LessonResponse convertToResponse(Lessons lesson) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         LessonResponse response = new LessonResponse();
         response.setId(lesson.getId());
         response.setCourseId(lesson.getCourse().getId());
@@ -51,9 +44,8 @@ public class LessonResponse {
         response.setIsActive(lesson.getIsActive());
         response.setIsDelete(lesson.getIsDelete());
         response.setOrderIndex(lesson.getOrderIndex());
-        response.setCreatedAt(lesson.getCreatedAt());
-        response.setUpdatedAt(lesson.getUpdatedAt());
-        response.setQuizzesResponse(QuizzesResponse.getQuizzesResponse(lesson.getQuizzes()));
+        response.setCreatedAt(formatter.format(lesson.getCreatedAt()));
+        response.setUpdatedAt(formatter.format(lesson.getUpdatedAt()));
 
         // Set createdBy user info
         if (lesson.getCreatedBy() != null) {
@@ -67,10 +59,17 @@ public class LessonResponse {
             response.setUpdatedByName(lesson.getUpdatedBy().getName());
         }
 
+        if (lesson.getQuizzes() != null) {
+            response.setQuizzesResponse(QuizzesResponse.getQuizzesResponse(lesson.getQuizzes()));
+        } else {
+            response.setQuizzesResponse(null);
+        }
+
         return response;
     }
 
     public static LessonResponse convertToResponse(LessonsDto lessonsDto) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         LessonResponse response = new LessonResponse();
         response.setId(lessonsDto.getId());
         response.setCourseId(lessonsDto.getCourseId());
@@ -80,8 +79,10 @@ public class LessonResponse {
         response.setIsActive(lessonsDto.getIsActive());
         response.setIsDelete(lessonsDto.getIsDelete());
         response.setOrderIndex(lessonsDto.getOrderIndex());
-        response.setCreatedAt(lessonsDto.getCreatedAt());
-        response.setUpdatedAt(lessonsDto.getUpdatedAt());
+        response.setCreatedAt(lessonsDto.getCreatedAt().toString());
+        response.setUpdatedAt(lessonsDto.getUpdatedAt().toString());
+        response.setCreatedAt(formatter.format(lessonsDto.getCreatedAt()));
+        response.setUpdatedAt(formatter.format(lessonsDto.getUpdatedAt()));
         response.setCreatedBy(lessonsDto.getCreatedById());
         response.setCreatedByName(lessonsDto.getCreatedByName());
         response.setUpdatedBy(lessonsDto.getUpdatedById());

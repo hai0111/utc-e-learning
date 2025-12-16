@@ -14,6 +14,8 @@ public class QuizzesResponse {
 
     private List<QuizQuestionResponse> quizQuestionsResponses;
 
+    private Boolean isAttempted;
+
     public static QuizzesResponse getQuizzesResponse(Quizzes quizzes) {
         QuizzesResponse response = new QuizzesResponse();
         response.setQuizTitle(quizzes.getTitle());
@@ -22,6 +24,7 @@ public class QuizzesResponse {
         } else {
             response.setQuizQuestionsResponses(List.of());
         }
+        response.setIsAttempted(false);
         return response;
     }
 }

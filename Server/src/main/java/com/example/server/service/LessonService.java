@@ -1,9 +1,6 @@
 package com.example.server.service;
 
-import com.example.server.dto.LessonsDto;
-import com.example.server.request.LessonEditRequest;
 import com.example.server.request.LessonRequest;
-import com.example.server.request.QuizzesRequest;
 import com.example.server.request.UpdateLessonBatchRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.BatchUpdateResponse;
@@ -21,7 +18,7 @@ public interface LessonService {
 
     ApiResponse<Object> createLesson(LessonRequest lessonRequest, UUID courseId, MultipartFile file);
 
-    ApiResponse<Object> editLesson(LessonEditRequest lessonRequest, UUID courseId, UUID lessonId);
+    ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId);
 
     ApiResponse<List<LessonResponse>> searchLessonsByTitleAndCourse(String title, UUID courseId);
 
