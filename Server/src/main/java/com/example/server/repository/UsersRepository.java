@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -121,4 +122,7 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
             "LOWER(u.code) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))" +
             ")")
     Page<StudentDto> searchStudentsByCodeOrNameNotCourse(UUID courseId, String search, Pageable pageable);
+
+    @Query("SELECT p.name FROM UserPositions up JOIN up.positions p WHERE up.users.id = :userId")
+    List<String> findPositionNamesByUserId(@Param("userId") UUID userId);
 }

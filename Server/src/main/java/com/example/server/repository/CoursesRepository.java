@@ -109,4 +109,6 @@ public interface CoursesRepository extends JpaRepository<Courses, UUID> {
     Boolean existsAllByTitleAndIsActive(String title, Boolean isActive);
 
     Boolean existsAllByTitle(String title);
+
+    long countByUsers_Id(UUID userId);
 }
