@@ -5,10 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class QuizzesResponse {
+
+    private UUID quizId;
 
     private String quizTitle;
 
@@ -18,6 +21,7 @@ public class QuizzesResponse {
 
     public static QuizzesResponse getQuizzesResponse(Quizzes quizzes) {
         QuizzesResponse response = new QuizzesResponse();
+        response.setQuizId(quizzes.getId());
         response.setQuizTitle(quizzes.getTitle());
         if (quizzes.getQuizQuestions() != null) {
             response.setQuizQuestionsResponses(QuizQuestionResponse.convertToResponse(quizzes.getQuizQuestions()));

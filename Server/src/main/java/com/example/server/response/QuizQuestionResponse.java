@@ -8,10 +8,13 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class QuizQuestionResponse {
+
+    private UUID questionId;
 
     private String questionText;
 
@@ -30,6 +33,7 @@ public class QuizQuestionResponse {
         }
         for (QuizQuestions quizQuestions : quizQuestionsList) {
             QuizQuestionResponse response = new QuizQuestionResponse();
+            response.setQuestionId(quizQuestions.getId());
             response.setQuestionText(quizQuestions.getQuestionText());
             response.setQuestionType(quizQuestions.getQuestionType());
             response.setRawPoint(quizQuestions.getRawPoint());
@@ -37,6 +41,7 @@ public class QuizQuestionResponse {
             if (quizQuestions.getOptions() != null) {
                 for (QuizOptions quizOptions : quizQuestions.getOptions()) {
                     QuizOptionsResponse responseOptions = new QuizOptionsResponse();
+                    responseOptions.setOptionId(quizOptions.getId());
                     responseOptions.setOptionText(quizOptions.getOptionText());
                     responseOptions.setIsCorrect(quizOptions.getIsCorrect());
                     responseOptions.setOrderIndex(quizOptions.getOrderIndex());
