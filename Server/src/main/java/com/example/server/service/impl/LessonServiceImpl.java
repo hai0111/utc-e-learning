@@ -5,15 +5,20 @@ import com.example.server.enums.LessonType;
 import com.example.server.enums.Role;
 import com.example.server.exception.CustomServiceException;
 import com.example.server.model.Courses;
+import com.example.server.model.Enrollment;
 import com.example.server.model.Lessons;
+import com.example.server.model.Progress;
 import com.example.server.model.Quizzes;
 import com.example.server.model.Users;
 import com.example.server.repository.CoursesRepository;
+import com.example.server.repository.EnrollmentRepository;
 import com.example.server.repository.LessonRepository;
+import com.example.server.repository.ProgressRepository;
 import com.example.server.repository.QuizAttemptsRepository;
 import com.example.server.repository.UsersRepository;
 import com.example.server.request.LessonRequest;
 import com.example.server.request.UpdateLessonBatchRequest;
+import com.example.server.request.UpdateProgressRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.BatchUpdateResponse;
 import com.example.server.response.LessonResponse;
@@ -48,6 +53,8 @@ public class LessonServiceImpl implements LessonService {
     private final UsersRepository usersRepository;
     private final CoursesRepository courseRepository;
     private final QuizAttemptsRepository quizAttemptsRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final ProgressRepository progressRepository;
 
     private final CloudinaryService cloudinaryService;
     private final QuizzesService quizzesService;
@@ -521,5 +528,42 @@ public class LessonServiceImpl implements LessonService {
         String message = String.format("Batch update completed. Success: %d, Failure: %d", successCount, failureCount);
         BatchUpdateResponse batchResponse = new BatchUpdateResponse(message, 200, successCount, failureCount, errors);
         return new ApiResponse<>(200, "Batch update processed successfully", batchResponse);
+    }
+
+    @Override
+    public void updateProgress(UpdateProgressRequest request, UUID userId) {
+        Users currentUser = usersRepository.findById(userId)
+                .orElseThrow(() -> new CustomServiceException("User not found", HttpStatus.NOT_FOUND));
+
+        if (!currentUser.getRole().equals(Role.STUDENT)) {
+            throw new CustomServiceException("Only students can track progress", HttpStatus.FORBIDDEN);
+        }
+
+        Lessons lesson = lessonRepository.findById(request.getLessonId())
+                .orElseThrow(() -> new CustomServiceException("Lesson not found", HttpStatus.NOT_FOUND));
+
+        UUID courseId = lesson.getCourse().getId();
+
+        Enrollment enrollment = enrollmentRepository.findByStudentIdAndCourseId(userId, courseId);
+
+        if (enrollment == null) {
+            throw new CustomServiceException("You are not enrolled or enrollment is inactive", HttpStatus.FORBIDDEN);
+        }
+
+        Optional<Progress> existingProgressOpt = progressRepository.findByEnrollment_IdAndLessons_Id(enrollment.getId(), lesson.getId());
+
+        Progress progress;
+        if (existingProgressOpt.isPresent()) {
+            progress = existingProgressOpt.get();
+            progress.setProgressPercentage(request.getProgressPercentage());
+        } else {
+            progress = new Progress();
+            progress.setEnrollment(enrollment);
+            progress.setLessons(lesson);
+            progress.setProgressPercentage(request.getProgressPercentage());
+        }
+
+        progress.setUpdatedAt(new Date());
+        progressRepository.save(progress);
     }
 }
