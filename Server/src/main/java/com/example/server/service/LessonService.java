@@ -2,6 +2,7 @@ package com.example.server.service;
 
 import com.example.server.request.LessonRequest;
 import com.example.server.request.UpdateLessonBatchRequest;
+import com.example.server.request.UpdateProgressRequest;
 import com.example.server.response.ApiResponse;
 import com.example.server.response.BatchUpdateResponse;
 import com.example.server.response.LessonResponse;
@@ -27,4 +28,6 @@ public interface LessonService {
     ApiResponse<Object> deleteLesson(UUID courseId, UUID lessonId);
 
     ApiResponse<BatchUpdateResponse> updateLessonBatch(UpdateLessonBatchRequest request, UUID courseId);
+
+    void updateProgress(UpdateProgressRequest request, UUID userId);
 }
