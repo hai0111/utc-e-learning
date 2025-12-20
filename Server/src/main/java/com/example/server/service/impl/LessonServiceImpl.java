@@ -113,10 +113,10 @@ public class LessonServiceImpl implements LessonService {
     // Hide the correct answer for the role as STUDENT => set isCorrect = null in response.
     private void hideCorrectAnswers(QuizzesResponse quizzesResponse) {
         if (quizzesResponse != null && quizzesResponse.getQuizQuestionsResponses() != null) {
-            for (QuizQuestionResponse q : quizzesResponse.getQuizQuestionsResponses()) {
-                if (q.getOptionsResponseList() != null) {
-                    for (QuizOptionsResponse o : q.getOptionsResponseList()) {
-                        o.setIsCorrect(null); // hide the answer
+            for (QuizQuestionResponse questionResponse : quizzesResponse.getQuizQuestionsResponses()) {
+                if (questionResponse.getOptionsResponseList() != null) {
+                    for (QuizOptionsResponse optionsResponse : questionResponse.getOptionsResponseList()) {
+                        optionsResponse.setIsCorrect(null); // hide the answer
                     }
                 }
             }
