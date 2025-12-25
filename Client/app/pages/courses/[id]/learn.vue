@@ -12,7 +12,9 @@
           <preview-source
             :type="lessonSelecting.type"
             :src="lessonSelecting.url"
+            :current-percent="currentTimeWhenLessonClicked"
             class="rounded-sm w-full h-full"
+            @time-update-video="onPlayVideo"
           />
         </div>
 
@@ -65,6 +67,7 @@
 
 <script setup lang="ts">
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import CourseService from "~/services/course.service";
 import { ELessonTypes, type ILesson } from "~/types/lesson";
 
 definePageMeta({
@@ -89,54 +92,51 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-const lessonTypeOptions = [
-  {
-    title: "Video",
-    value: ELessonTypes.VIDEO,
-    color: "blue",
-  },
-  {
-    title: "PDF",
-    value: ELessonTypes.DOCUMENT,
-    color: "purple",
-  },
-  {
-    title: "Quiz",
-    value: ELessonTypes.QUIZ,
-    color: "green",
-  },
-];
-
-const lessonsData = ref<ILesson[]>(
-  Array.from({ length: 10 }, (_, i) => {
-    const type = lessonTypeOptions[i % lessonTypeOptions.length]!.value;
-
-    const titles = {
-      [ELessonTypes.VIDEO]: `Lesson ${i + 1}: Introduction to JavaScript`,
-      [ELessonTypes.DOCUMENT]: `Lesson ${i + 1}: Advanced Concepts`,
-      [ELessonTypes.QUIZ]: `Lesson ${i + 1}: Practice Quiz`,
-    };
-
-    return {
-      id: (i + 1).toString(),
-      orderIndex: i + 1,
-      title: titles[type as keyof typeof titles],
-      type,
-      url: type === ELessonTypes.DOCUMENT ? "/demo.pdf" : "/demo.mp4",
-      isActive: i % 2 === 0,
-    };
-  })
+const { data: lessonsData, status } = useAsyncData(
+  `course/${route.params.id as string}/lessons`,
+  () => CourseService.getLessons((route.params.id as string) ?? ""),
+  { default: () => [] }
 );
 
 const lessonSelecting = ref<ILesson>();
 
+const currentTimeWhenLessonClicked = computed(
+  () => lessonSelecting.value?.currentPercent ?? 0
+);
+
+const id = ref();
+const currentPercent = ref();
+
+const postCurrentTime = () => {
+  try {
+    CourseService.progress(route.params.id as string, {
+      lessonId: route.query.lessonId as string,
+      progressPercentage: currentPercent.value,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const onPlayVideo = (event: Event) => {
+  id.value++;
+  const { duration, currentTime } = event.target as HTMLVideoElement;
+  currentPercent.value = ((currentTime / duration) * 100).toFixed();
+  if (id.value < 30) return;
+  postCurrentTime();
+  id.value = 0;
+};
+
 watch(
-  route,
+  () => [route.query.lessonId, status.value],
   () => {
+    if (status.value !== "success") return;
+
     if (!route.query.lessonId) {
-      router.replace("?lessonId=1");
+      router.replace(`?lessonId=${lessonsData.value[0]?.id}`);
       return;
     }
+
     lessonSelecting.value = lessonsData.value.find(
       (item) => item.id === route.query.lessonId
     );

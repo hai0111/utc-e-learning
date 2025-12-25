@@ -10,6 +10,7 @@ export interface ICourse {
   isActive: boolean;
   title: string;
   totalStudents: number;
+  progressPercentage: number | null;
   updatedAt: string;
   createdAt: string;
   instructor: string;

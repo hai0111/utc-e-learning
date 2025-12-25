@@ -18,6 +18,7 @@ export interface ILesson {
   updatedByName: string;
   created_at: string;
   updated_at: string;
+  currentPercent?: number;
 }
 
 export interface ILessonForm {
@@ -38,4 +39,9 @@ export interface ILessonBatchUpdateItem {
 
 export interface ILessonBatchUpdateForm {
   lessons: ILessonBatchUpdateItem[];
+}
+
+export interface ILessonProgressBody {
+  lessonId: string;
+  progressPercentage: number;
 }

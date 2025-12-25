@@ -2,36 +2,23 @@
   <div class="grid grid-cols-[1fr_400px] gap-3">
     <v-card>
       <v-card-title class="text-3xl font-medium pt-4">
-        Ứng dụng phần mềm
+        {{ data?.title }}
       </v-card-title>
 
-      <v-card-subtitle> Last updated: 01/11/2025 </v-card-subtitle>
+      <v-card-subtitle>
+        Last updated: {{ dayjs(data?.updatedAt).format("DD/MM/YYYY") }}
+      </v-card-subtitle>
 
       <v-card-text>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium non
-        consequuntur voluptatum alias dolorem, dolor maiores debitis incidunt
-        rem, rerum laborum ea ullam. Sint, perspiciatis? Suscipit ex placeat
-        repudiandae provident nam error totam quis. Reprehenderit aspernatur
-        voluptatibus aperiam corporis tenetur quo esse quidem magnam autem
-        inventore pariatur dolores animi non temporibus perspiciatis corrupti
-        quae sapiente similique, vitae eligendi tempore eveniet! Quis, officia
-        incidunt, ullam libero, asperiores soluta sunt itaque enim vitae hic
-        illo pariatur ducimus neque magnam necessitatibus dicta sequi magni
-        tempora nulla impedit! Inventore error numquam fugit sunt accusamus
-        nihil excepturi, aliquam vitae pariatur ab in voluptate tenetur maiores
-        voluptas animi doloremque dolor delectus debitis odit ad nostrum
-        architecto quaerat. Eligendi perspiciatis neque delectus veritatis
-        voluptas magnam, tempora mollitia.
+        {{ data?.description }}
       </v-card-text>
 
       <v-divider />
 
       <v-card-text>
         <nuxt-link to="/" class="font-medium text-blue-500 text-base">
-          Nguyễn Đức Dư
+          {{ data?.instructor }}
         </nuxt-link>
-
-        <div>Ứng dụng phần mềm Instructor</div>
 
         <div class="flex items-start gap-3 mt-3">
           <nuxt-img
@@ -92,22 +79,18 @@
             class="flex flex-col items-center justify-center gap-4 aspect-square"
           >
             <v-progress-circular
-              :model-value="60"
+              :model-value="data?.progressPercentage ?? 0"
               :rotate="360"
               :size="200"
               :width="30"
               color="teal"
             >
               <template v-slot:default>
-                <span class="font-bold text-3xl">{{ 60 }} %</span>
+                <span class="font-bold text-3xl"
+                  >{{ data?.progressPercentage?.toFixed() ?? 0 }} %</span
+                >
               </template>
             </v-progress-circular>
-
-            <div class="text-xl font-medium text-center">
-              38/158
-              <br />
-              <span class="font-thin text-base">Lessons</span>
-            </div>
           </v-card-text>
         </v-card>
       </div>
@@ -123,6 +106,15 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import dayjs from "dayjs";
+import CourseService from "~/services/course.service";
+
+const { params } = useRoute();
+
+const { data } = useAsyncData(`course/${params.id as string}`, () =>
+  CourseService.detail((params.id as string) ?? "")
+);
+</script>
 
 <style scoped></style>

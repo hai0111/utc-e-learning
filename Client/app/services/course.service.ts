@@ -5,6 +5,7 @@ import type {
   ILesson,
   ILessonBatchUpdateForm,
   ILessonForm,
+  ILessonProgressBody,
 } from "~/types/lesson";
 import type { IStudentNotEnrolled } from "~/types/student";
 
@@ -139,6 +140,15 @@ class Course extends BaseService {
   async batchUpdateLessons(courseId: string, body: ILessonBatchUpdateForm) {
     const res = await this.instance.put(
       `/courses/${courseId}/lessons/batch-update`,
+      body
+    );
+
+    return res.data;
+  }
+
+  async progress(courseId: string, body: ILessonProgressBody) {
+    const res = await this.instance.post(
+      `/courses/${courseId}/lessons/progress`,
       body
     );
 

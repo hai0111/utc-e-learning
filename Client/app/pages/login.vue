@@ -63,12 +63,15 @@ const formValues = ref<ILoginBody>({
 
 const { query } = useRoute();
 
+const auth = useAuth();
+
 const submit = async () => {
   try {
     const res = await AuthService.login(formValues.value);
 
     // TODO: Handle API
     Cookies.set("jwt", res.data.jwt);
+    auth.userInfo = null;
     await navigateTo((query.back as string) ?? "/");
   } catch (err) {
     toast("Account or password is incorrect", {

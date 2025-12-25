@@ -4,7 +4,7 @@
       <v-icon icon="mdi-chevron-right" />
     </template>
   </v-breadcrumbs>
-  <VDataTable :headers="headers" :items="items" disable-sort>
+  <VDataTable :headers="headers" :items="data" disable-sort>
     <template #item.index="{ index }"> {{ index + 1 }} </template>
     <template #item.title="{ item: { id, title } }">
       <NuxtLink
@@ -16,15 +16,15 @@
       </NuxtLink>
     </template>
 
-    <template #item.progress="{ item: { progress } }">
+    <template #item.progressPercentage="{ item: { progressPercentage } }">
       <div class="flex items-center gap-4 whitespace-nowrap">
-        {{ progress }}%
+        {{ progressPercentage }}%
         <v-progress-linear
           color="blue"
           height="12"
           max="100"
           min="0"
-          :model-value="progress"
+          :model-value="progressPercentage"
           rounded
         />
       </div>
@@ -35,6 +35,7 @@
 <script setup lang="ts">
 import type { DataTableHeader } from "vuetify";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
+import CourseService from "~/services/course.service";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -59,19 +60,18 @@ const headers: DataTableHeader[] = [
   },
 
   {
-    key: "progress",
+    key: "progressPercentage",
     title: "Progress",
   },
 ];
 
-const items = ref([
-  {
-    id: 1,
-    title: "Ứng dụng phần mềm",
-    instructorName: "Nguyễn Đức Dư",
-    progress: 30,
-  },
-]);
+const { data } = useAsyncData("courses", () => CourseService.getList(), {
+  transform: (data) =>
+    data.map((item) => ({
+      ...item,
+      progressPercentage: item.progressPercentage ?? 30,
+    })),
+});
 </script>
 
 <style scoped></style>
