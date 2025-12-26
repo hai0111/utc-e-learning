@@ -1,7 +1,9 @@
 package com.example.server.service;
 
 import com.example.server.model.Quizzes;
+import com.example.server.request.QuizSubmissionRequest;
 import com.example.server.request.QuizzesRequest;
+import com.example.server.response.ApiResponse;
 
 import java.util.UUID;
 
@@ -12,4 +14,6 @@ public interface QuizzesService {
     Quizzes updateQuizzes(Quizzes quizzes, QuizzesRequest quizzesRequest);
 
     void deleteQuizIfUnused(UUID quizId);
+
+    ApiResponse<Object> submitQuizzes(QuizSubmissionRequest quizSubmissionRequest, UUID quizId, UUID lessonId);
 }

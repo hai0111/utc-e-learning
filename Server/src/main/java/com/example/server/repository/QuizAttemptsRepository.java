@@ -16,4 +16,7 @@ public interface QuizAttemptsRepository extends JpaRepository<QuizAttempts, UUID
 
     // Check if anyone has already taken this quiz.
     boolean existsByQuizzesId(UUID quizId);
+
+    // Count how many rows there are in the attempts table with this Enrollment ID and this Quiz ID
+    Integer countByEnrollmentIdAndQuizzesId(UUID enrollmentId, UUID quizId);
 }
