@@ -19,7 +19,7 @@ public interface LessonService {
 
     ApiResponse<Object> createLesson(LessonRequest lessonRequest, UUID courseId, MultipartFile file);
 
-    ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId);
+    ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId, MultipartFile file);
 
     ApiResponse<List<LessonResponse>> searchLessonsByTitleAndCourse(String title, UUID courseId);
 
