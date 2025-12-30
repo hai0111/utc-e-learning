@@ -19,10 +19,12 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "l.orderIndex as orderIndex, " +
             "l.createdBy.id as createdById, creator.name as createdByName, " +
             "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
-            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt, " +
+            "q.id as quizId, q.title as quizTitle " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
+            "LEFT JOIN l.quizzes q " +
             "WHERE l.course.id = :courseId AND l.isDelete != true " +
             "ORDER BY l.orderIndex ASC")
     List<LessonsDto> findByCourseIdAndIsActiveTrueOrderByOrderIndexAsc(@Param("courseId") UUID courseId);
@@ -33,10 +35,12 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "l.orderIndex as orderIndex, " +
             "l.createdBy.id as createdById, creator.name as createdByName, " +
             "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
-            "l.createdAt as createdAt, l.updatedAt as updatedAt " +
+            "l.createdAt as createdAt, l.updatedAt as updatedAt, " +
+            "q.id as quizId, q.title as quizTitle " +
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
+            "LEFT JOIN l.quizzes q " +
             "WHERE l.course.id = :courseId " +
             "AND l.createdBy.id = :instructorId AND l.isDelete != true " +
             "ORDER BY l.orderIndex ASC")
@@ -50,6 +54,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "l.orderIndex as orderIndex, " +
             "l.createdBy.id as createdById, creator.name as createdByName, " +
             "l.updatedBy.id as updatedById, updater.name as updatedByName, " +
+            "q.id as quizId, q.title as quizTitle, " +
             "l.createdAt as createdAt, l.updatedAt as updatedAt, " +
             "(SELECT COALESCE(p.progressPercentage, 0) FROM Progress p " +
             " WHERE p.lessons.id = l.id " +
@@ -57,6 +62,7 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
             "FROM Lessons l " +
             "LEFT JOIN l.createdBy creator " +
             "LEFT JOIN l.updatedBy updater " +
+            "LEFT JOIN l.quizzes q " +
             "WHERE l.course.id = :courseId AND l.isDelete != true AND l.isActive = true " +
             "AND l.course.id IN (SELECT e.course.id FROM Enrollment e WHERE e.users.id = :studentId) " +
             "ORDER BY l.orderIndex ASC")

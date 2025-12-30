@@ -34,4 +34,8 @@ public interface LessonsDto {
     Date getUpdatedAt();
 
     Double getCurrentPercent();
+
+    UUID getQuizId();
+
+    String getQuizTitle();
 }
