@@ -183,4 +183,6 @@ public interface LessonRepository extends JpaRepository<Lessons, UUID> {
     boolean existsByCourseIdAndOrderIndexAndIsActiveTrue(UUID courseId, Integer orderIndex);
 
     boolean existsByCourseIdAndOrderIndexAndIdNotAndIsActiveTrue(UUID courseId, Integer orderIndex, UUID lessonId);
+
+    Optional<Lessons> findByQuizzesId(UUID quizId);
 }
