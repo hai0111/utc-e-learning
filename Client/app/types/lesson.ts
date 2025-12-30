@@ -19,6 +19,34 @@ export interface ILesson {
   created_at: string;
   updated_at: string;
   currentPercent?: number;
+  quizzesResponseList:
+    | {
+        quizId: string;
+        quizTitle: string;
+      }[]
+    | null;
+}
+
+export enum EQuestionType {
+  SINGLE = "SINGLE",
+  MULTIPLE = "MULTIPLE",
+  TEXT = "TEXT",
+}
+
+export interface IOption {
+  id?: number;
+  optionText?: string;
+  isCorrect?: boolean;
+  orderIndex?: number;
+}
+
+export interface IQuestionForm {
+  questionText?: string;
+  questionType?: EQuestionType;
+  rawPoint?: number;
+  orderIndex?: number;
+  optionsRequestList?: IOption[];
+  id?: number;
 }
 
 export interface ILessonForm {
@@ -29,6 +57,10 @@ export interface ILessonForm {
   file: File;
   isActive: boolean;
   orderIndexClient?: number;
+  quizzesRequest?: {
+    quizTitle?: string;
+    quizQuestionsRequests?: IQuestionForm[];
+  };
 }
 
 export interface ILessonBatchUpdateItem {

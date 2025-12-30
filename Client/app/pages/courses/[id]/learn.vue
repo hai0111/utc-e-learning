@@ -10,21 +10,60 @@
       <template v-if="lessonSelecting">
         <div class="grow">
           <preview-source
+            v-if="
+              [ELessonTypes.VIDEO, ELessonTypes.DOCUMENT].includes(
+                lessonSelecting.type
+              )
+            "
             :type="lessonSelecting.type"
             :src="lessonSelecting.url"
             :current-percent="currentTimeWhenLessonClicked"
             class="rounded-sm w-full h-full"
             @time-update-video="onPlayVideo"
           />
+
+          <div
+            v-else
+            class="h-full flex flex-col gap-6 items-center justify-center"
+          >
+            <div class="text-2xl">
+              <v-icon icon="mdi-text-box-outline" />
+              Bài kiểm tra cuối cùng
+            </div>
+            <v-btn
+              color="success"
+              class="rounded-pill text-lg"
+              :height="50"
+              :width="300"
+              @click="
+                $router.push(
+                  `/quiz/${
+                    lessonSelecting.quizzesResponseList?.[0]?.quizId ?? ''
+                  }`
+                )
+              "
+            >
+              Start Exam
+            </v-btn>
+          </div>
         </div>
 
-        <h2 class="text-xl mt-5">{{ lessonSelecting.title }}</h2>
+        <h2
+          v-if="
+            [ELessonTypes.VIDEO, ELessonTypes.DOCUMENT].includes(
+              lessonSelecting.type
+            )
+          "
+          class="text-xl mt-5"
+        >
+          {{ lessonSelecting.title }}
+        </h2>
       </template>
     </div>
 
     <div>
       <v-list
-        :selected="route.query.lessonId"
+        :selected="[route.query.lessonId]"
         mandatory
         height="calc(100vh - 82px)"
         class="overflow-auto position-sticky top-[82px]"
@@ -66,6 +105,7 @@
 </template>
 
 <script setup lang="ts">
+import { VBtn } from "vuetify/components";
 import type { BreadcrumbItem } from "vuetify/lib/components/VBreadcrumbs/VBreadcrumbs.mjs";
 import CourseService from "~/services/course.service";
 import { ELessonTypes, type ILesson } from "~/types/lesson";

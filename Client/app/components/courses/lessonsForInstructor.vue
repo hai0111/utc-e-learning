@@ -279,8 +279,6 @@ const previewModal = ref<{ isOpen: boolean; lesson: null | ILesson }>({
 });
 
 const openPreviewModal = (data: ILesson) => {
-  console.log(data);
-
   previewModal.value.lesson = data;
   previewModal.value.isOpen = true;
 };

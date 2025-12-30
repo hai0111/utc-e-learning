@@ -55,7 +55,7 @@ const headers: DataTableHeader[] = [
   },
 
   {
-    key: "instructorName",
+    key: "instructor",
     title: "Instructor",
   },
 

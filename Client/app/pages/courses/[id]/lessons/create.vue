@@ -65,13 +65,19 @@ const onCancel = () => {
 
 const form = ref();
 const isLoading = ref(false);
+
 const handleSave = async () => {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  if (!formValues.value.file) {
+
+  if (formValues.value.type !== ELessonTypes.QUIZ && !formValues.value.file) {
     toastWarning("Please select file");
     return;
+  }
+
+  if (formValues.value.type !== ELessonTypes.QUIZ) {
+    formValues.value.quizzesRequest = undefined;
   }
 
   isLoading.value = true;

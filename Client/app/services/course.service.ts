@@ -1,11 +1,12 @@
 import { DEFAULT_PAGER } from "~/constants";
 import BaseService from "~/services/base.service";
 import type { ICourse, ICourseForm } from "~/types/course";
-import type {
-  ILesson,
-  ILessonBatchUpdateForm,
-  ILessonForm,
-  ILessonProgressBody,
+import {
+  ELessonTypes,
+  type ILesson,
+  type ILessonBatchUpdateForm,
+  type ILessonForm,
+  type ILessonProgressBody,
 } from "~/types/lesson";
 import type { IStudentNotEnrolled } from "~/types/student";
 
@@ -100,9 +101,16 @@ class Course extends BaseService {
   }
 
   async createLesson(courseId: string, formValues: ILessonForm) {
+    const { file, ...data } = formValues;
+
     const res = await this.instance.postForm<ILesson[]>(
       `/courses/${courseId}/lessons/create`,
-      formValues
+      {
+        file,
+        data: new Blob([JSON.stringify(data)], {
+          type: "application/json",
+        }),
+      }
     );
 
     return res.data;
@@ -113,9 +121,16 @@ class Course extends BaseService {
     lessonId: string,
     formValues: ILessonForm
   ) {
-    const res = await this.instance.put<ILesson[]>(
+    const { file, ...data } = formValues;
+
+    const res = await this.instance.putForm<ILesson[]>(
       `/courses/${courseId}/lessons/edit/${lessonId}`,
-      formValues
+      {
+        file,
+        data: new Blob([JSON.stringify(data)], {
+          type: "application/json",
+        }),
+      }
     );
 
     return res.data;

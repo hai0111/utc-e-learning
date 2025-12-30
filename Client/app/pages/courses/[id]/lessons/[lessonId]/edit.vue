@@ -98,7 +98,12 @@ const onSave = async () => {
 
   if (!valid) return;
 
+  if (formValues.value.type !== ELessonTypes.QUIZ) {
+    formValues.value.quizzesRequest = undefined;
+  }
+
   isLoading.value = true;
+
   try {
     await CourseService.editLesson(
       route.params.id as string,

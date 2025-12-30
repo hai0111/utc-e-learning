@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div
+    :class="{
+      'flex items-center gap-3': inline,
+    }"
+  >
     <div>
       {{ props.label }}
     </div>
@@ -13,6 +17,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   label: string;
+  inline?: boolean;
 }>();
 </script>
 

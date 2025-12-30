@@ -20,6 +20,7 @@
           :disabled="disabled"
           color="primary"
           density="compact"
+          mandatory
         >
           <v-btn :value="ELessonTypes.VIDEO">
             <v-icon>mdi-video</v-icon>
@@ -29,7 +30,10 @@
             <v-icon>mdi-file-pdf-box </v-icon>
           </v-btn>
 
-          <v-btn :value="ELessonTypes.QUIZ">
+          <v-btn
+            :value="ELessonTypes.QUIZ"
+            @click="modelValue.quizzesRequest ??= {}"
+          >
             <v-icon>mdi-head-question </v-icon>
           </v-btn>
         </v-btn-toggle>
@@ -37,11 +41,22 @@
 
       <div class="col-span-2">
         <VFileUpload
+          v-if="
+            [ELessonTypes.DOCUMENT, ELessonTypes.VIDEO].includes(
+              modelValue.type!
+            )
+          "
           :disabled="disabled"
           v-model="modelValue.file"
           density="comfortable"
           variant="comfortable"
           :filter-by-type="acceptFiles"
+        />
+
+        <LessonQuizForm
+          :model-value="modelValue"
+          v-on:update:model-value="$emit('update:modelValue', $event)"
+          v-else
         />
       </div>
     </template>
@@ -49,12 +64,16 @@
     <div v-else-if="modelValue.url" class="col-span-2 w-[1000px]">
       <preview-source
         :type="modelValue.type!"
-        :src="modelValue.url"
+        :src="
+          modelValue.type === ELessonTypes.DOCUMENT
+            ? '/demo.pdf'
+            : modelValue.url
+        "
         class="w-[1000px] h-[60vh]"
       />
     </div>
 
-    <div class="col-span-2 grid grid-cols-[auto_1fr] items-center gap-3 mt-6">
+    <div class="col-span-2 grid grid-cols-[auto_1fr] items-center gap-3 mt-14">
       <div>Order Index:</div>
 
       <v-slider
@@ -174,5 +193,11 @@ const orderIndexDetail = computed(() => {
   .v-slider-thumb__label {
     height: unset !important;
   }
+}
+
+.auto-width input {
+  width: calc(var(--char-count) * 1ch);
+  min-width: 120px;
+  max-width: 400px;
 }
 </style>
