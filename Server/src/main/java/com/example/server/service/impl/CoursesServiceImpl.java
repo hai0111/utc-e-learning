@@ -60,7 +60,14 @@ public class CoursesServiceImpl implements CoursesService {
         List<CourseResponse> courseResponseList = pageCourse.getContent().stream()
                 .map(courseDto -> {
                     Long totalStudents = usersRepository.totalStudentsInCourse(courseDto.getId());
-                    return CourseResponse.convertDtoToCourseResponse(courseDto, totalStudents);
+                    double progressPercentage = 0.0;
+                    if (courseDto.getTotaLessonCount() != null && courseDto.getTotaLessonCount() > 0) {
+                        double sumProgress = courseDto.getSumProgressAchieved() != null ? courseDto.getSumProgressAchieved() : 0.0;
+                        progressPercentage = sumProgress / courseDto.getTotaLessonCount();
+                    }
+                    CourseResponse response = CourseResponse.convertDtoToCourseResponse(courseDto, totalStudents);
+                    response.setProgressPercentage(progressPercentage);
+                    return response;
                 })
                 .collect(Collectors.toList());
         return new ApiResponse<>(200, "Success", courseResponseList);
