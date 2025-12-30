@@ -8,7 +8,7 @@
       class="col-span-2 py-3 px-5 border-b flex items-center justify-between"
     >
       <span class="text-xl font-bold">
-        {{ dataDetail.quizTitle }}
+        {{ dataDetail?.quizTitle }}
       </span>
 
       <span class="font-bold text-orange-600"> Remaining: 00:59:00 </span>
@@ -17,8 +17,8 @@
     <VSheet width="100%" color="#fff" class="border-r overflow-auto">
       <v-list v-model:selected="selected" return-object class="py-0" mandatory>
         <v-list-item
-          v-for="(item, index) in dataDetail.quizQuestionsRequests"
-          :key="item.id"
+          v-for="(item, index) in dataDetail?.quizQuestionsResponses"
+          :key="item.questionId"
           :value="item"
           active-class="bg-grey-lighten-4"
           :class="[
@@ -59,9 +59,9 @@
           <div>
             Question
             {{
-              dataDetail.quizQuestionsRequests.findIndex(
-                (item) => itemSelected?.id === item.id
-              ) + 1
+              (dataDetail?.quizQuestionsResponses?.findIndex(
+                (item) => itemSelected?.questionId === item.questionId
+              ) ?? 0) + 1
             }}
 
             <span class="text-primary ms-2">
@@ -112,8 +112,8 @@
           "
         >
           <v-list-item
-            v-for="item in itemSelected?.optionsRequestList"
-            :key="item.id"
+            v-for="item in itemSelected?.optionsResponseList"
+            :key="item.optionId"
             :value="item"
             active-class="text-primary"
             class="py-2"
@@ -150,7 +150,7 @@
 
       <div>
         <VPagination
-          :length="dataDetail.quizQuestionsRequests.length"
+          :length="dataDetail?.quizQuestionsResponses?.length"
           :total-visible="10"
           v-model="questionIndex"
         >
@@ -195,222 +195,24 @@ definePageMeta({
   layout: "quiz-layout",
 });
 
+import ExamService from "~/services/exam.service";
 import { EQuestionType } from "~/types/lesson";
 
-const dataDetail = {
-  quizQuestionsRequests: [
-    {
-      id: 1767105523285,
-      questionType: EQuestionType.SINGLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Thủ đô của Nhật Bản là gì?",
-      rawPoint: 5,
-      orderIndex: 0,
-      optionsRequestList: [
-        {
-          id: 1767105523286,
-          optionText: "Osaka",
-          isCorrect: false,
-          orderIndex: 0,
-        },
-        { optionText: "Kyoto", isCorrect: false, orderIndex: 1 },
-        {
-          id: 1767105538082,
-          optionText: "Tokyo",
-          isCorrect: true,
-          orderIndex: 2,
-        },
-        {
-          id: 1767105541314,
-          optionText: "Nagoya",
-          isCorrect: false,
-          orderIndex: 3,
-        },
-      ],
-    },
-    {
-      id: 1767105544546,
-      questionType: EQuestionType.MULTIPLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Ngôn ngữ nào sau đây là ngôn ngữ lập trình?",
-      rawPoint: 10,
-      orderIndex: 1,
-      optionsRequestList: [
-        {
-          id: 1767105544547,
-          optionText: "JavaScript",
-          isCorrect: true,
-          orderIndex: 0,
-        },
-        {
-          id: 1767105544548,
-          optionText: "HTML",
-          isCorrect: false,
-          orderIndex: 1,
-        },
-        {
-          id: 1767105563429,
-          optionText: "Python",
-          isCorrect: true,
-          orderIndex: 2,
-        },
-        {
-          id: 1767105566906,
-          optionText: "CSS",
-          isCorrect: false,
-          orderIndex: 3,
-        },
-      ],
-    },
-    {
-      id: 1767105573277,
-      questionType: EQuestionType.TEXT,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Hãy nêu ngắn gọn React dùng để làm gì?",
-      rawPoint: 10,
-      orderIndex: 2,
-    },
-    {
-      id: 1767105600001,
-      questionType: EQuestionType.SINGLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "HTTP status code nào biểu thị thành công?",
-      rawPoint: 5,
-      orderIndex: 3,
-      optionsRequestList: [
-        { optionText: "200", isCorrect: true, orderIndex: 0 },
-        { optionText: "404", isCorrect: false, orderIndex: 1 },
-        { optionText: "500", isCorrect: false, orderIndex: 2 },
-        { optionText: "301", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-    {
-      id: 1767105600002,
-      questionType: EQuestionType.MULTIPLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Đâu là state management library?",
-      rawPoint: 10,
-      orderIndex: 4,
-      optionsRequestList: [
-        { optionText: "Redux", isCorrect: true, orderIndex: 0 },
-        { optionText: "Pinia", isCorrect: true, orderIndex: 1 },
-        { optionText: "Axios", isCorrect: false, orderIndex: 2 },
-        { optionText: "Lodash", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-    {
-      id: 1767105600003,
-      questionType: EQuestionType.TEXT,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "REST API là gì?",
-      rawPoint: 10,
-      orderIndex: 5,
-    },
-    {
-      id: 1767105600004,
-      questionType: EQuestionType.SINGLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Hook nào dùng để quản lý state trong React?",
-      rawPoint: 5,
-      orderIndex: 6,
-      optionsRequestList: [
-        { optionText: "useState", isCorrect: true, orderIndex: 0 },
-        { optionText: "useEffect", isCorrect: false, orderIndex: 1 },
-        { optionText: "useMemo", isCorrect: false, orderIndex: 2 },
-        { optionText: "useRef", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-    {
-      id: 1767105600005,
-      questionType: EQuestionType.MULTIPLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Đâu là CSS framework?",
-      rawPoint: 10,
-      orderIndex: 7,
-      optionsRequestList: [
-        { optionText: "Tailwind CSS", isCorrect: true, orderIndex: 0 },
-        { optionText: "Bootstrap", isCorrect: true, orderIndex: 1 },
-        { optionText: "Vue", isCorrect: false, orderIndex: 2 },
-        { optionText: "React", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-    {
-      id: 1767105600006,
-      questionType: EQuestionType.TEXT,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Sự khác nhau giữa var, let và const?",
-      rawPoint: 10,
-      orderIndex: 8,
-    },
-    {
-      id: 1767105600007,
-      questionType: EQuestionType.SINGLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Vite chủ yếu dùng để làm gì?",
-      rawPoint: 5,
-      orderIndex: 9,
-      optionsRequestList: [
-        { optionText: "Build tool", isCorrect: true, orderIndex: 0 },
-        { optionText: "Database", isCorrect: false, orderIndex: 1 },
-        { optionText: "UI library", isCorrect: false, orderIndex: 2 },
-        { optionText: "Testing framework", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-    {
-      id: 1767105600008,
-      questionType: EQuestionType.MULTIPLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "Đâu là HTTP methods hợp lệ?",
-      rawPoint: 10,
-      orderIndex: 10,
-      optionsRequestList: [
-        { optionText: "GET", isCorrect: true, orderIndex: 0 },
-        { optionText: "POST", isCorrect: true, orderIndex: 1 },
-        { optionText: "FETCH", isCorrect: false, orderIndex: 2 },
-        { optionText: "SEND", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-    {
-      id: 1767105600009,
-      questionType: EQuestionType.SINGLE,
-      isTouched: false,
-      markAsLater: false,
-      questionText: "TypeScript là gì?",
-      rawPoint: 5,
-      orderIndex: 11,
-      optionsRequestList: [
-        {
-          optionText: "Superset của JavaScript",
-          isCorrect: true,
-          orderIndex: 0,
-        },
-        { optionText: "Framework backend", isCorrect: false, orderIndex: 1 },
-        { optionText: "Database", isCorrect: false, orderIndex: 2 },
-        { optionText: "CSS preprocessor", isCorrect: false, orderIndex: 3 },
-      ],
-    },
-  ],
-  quizTitle: "Bài kiểm tra cuối cùng",
-};
+const { params } = useRoute();
 
-const selected = ref([dataDetail.quizQuestionsRequests[0]]);
+const { data: dataDetail } = useAsyncData(
+  `course/${params.id as string}`,
+  () => ExamService.detail((params.id as string) ?? ""),
+  { default: () => null }
+);
+
+const selected = ref([dataDetail.value?.quizQuestionsResponses?.[0]]);
 const itemSelected = computed(() => selected.value[0] ?? null);
 
 const questionIndex = ref(1);
 
 watch(questionIndex, (val) => {
-  selected.value = [dataDetail.quizQuestionsRequests[val - 1]];
+  selected.value = [dataDetail.value?.quizQuestionsResponses?.[val - 1]];
 });
 
 watch(
@@ -420,9 +222,9 @@ watch(
     if (!selectedItem) return;
     selectedItem.isTouched = true;
     questionIndex.value =
-      dataDetail.quizQuestionsRequests.findIndex(
-        (item) => item.id === selectedItem.id
-      ) + 1;
+      (dataDetail.value?.quizQuestionsResponses?.findIndex(
+        (item) => item.questionId === selectedItem.questionId
+      ) ?? 0) + 1;
   },
   {
     immediate: true,

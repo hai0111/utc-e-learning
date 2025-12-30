@@ -69,7 +69,7 @@ const { data } = useAsyncData("courses", () => CourseService.getList(), {
   transform: (data) =>
     data.map((item) => ({
       ...item,
-      progressPercentage: item.progressPercentage ?? 30,
+      progressPercentage: item.progressPercentage?.toFixed() ?? 30,
     })),
 });
 </script>
