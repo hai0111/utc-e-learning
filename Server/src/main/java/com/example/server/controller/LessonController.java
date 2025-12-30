@@ -49,14 +49,22 @@ public class LessonController {
     }
 
     @PostMapping(value = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> createLesson(@PathVariable UUID courseId, @RequestPart("data") @Valid LessonRequest lessonRequest, @RequestPart(value = "file", required = false) MultipartFile file) {
+    public ResponseEntity<?> createLesson(
+            @PathVariable UUID courseId,
+            @RequestPart("data") @Valid LessonRequest lessonRequest,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         ApiResponse<Object> response = lessonService.createLesson(lessonRequest, courseId, file);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/edit/{lessonId}")
-    public ResponseEntity<?> editLesson(@PathVariable UUID courseId, @PathVariable UUID lessonId, @RequestBody @Valid LessonRequest lessonRequest) {
-        ApiResponse<Object> response = lessonService.editLesson(lessonRequest, courseId, lessonId);
+    @PutMapping(value = "/edit/{lessonId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> editLesson(
+            @PathVariable UUID courseId,
+            @PathVariable UUID lessonId,
+            @RequestPart("data") @Valid LessonRequest lessonRequest,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) {
+        ApiResponse<Object> response = lessonService.editLesson(lessonRequest, courseId, lessonId, file);
         return ResponseEntity.ok(response);
     }
 

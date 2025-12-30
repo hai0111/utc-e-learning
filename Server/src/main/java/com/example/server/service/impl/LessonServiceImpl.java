@@ -87,7 +87,8 @@ public class LessonServiceImpl implements LessonService {
 
         Optional<Lessons> lessonOptional = switch (role) {
             case ADMIN -> lessonRepository.findLessonEntityByIdAndCourseIdAndIsActiveTrue(lessonId, courseId);
-            case INSTRUCTOR -> lessonRepository.findLessonEntityByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId);
+            case INSTRUCTOR ->
+                    lessonRepository.findLessonEntityByIdAndCourseIdAndInstructorIdAndIsActiveTrue(lessonId, courseId, currentUserId);
             case STUDENT -> lessonRepository.findLessonEntityByIdAndCourseIdAndIsActiveTrue(lessonId, courseId);
             default -> throw new CustomServiceException("Invalid role", HttpStatus.FORBIDDEN);
         };
@@ -173,14 +174,16 @@ public class LessonServiceImpl implements LessonService {
             }
         }
 
-        // Validate file
-        if (file == null || file.isEmpty()) {
-            throw new CustomServiceException("File is required", HttpStatus.BAD_REQUEST);
-        }
+        if (!lessonRequest.getType().equals(LessonType.QUIZ)) {
+            // Validate file presence
+            if (file == null || file.isEmpty()) {
+                throw new CustomServiceException("File is required for VIDEO or DOCUMENT lessons", HttpStatus.BAD_REQUEST);
+            }
 
-        // Validate file size (max 100MB)
-        if (file.getSize() > 100 * 1024 * 1024) {
-            throw new CustomServiceException("File size must be less than 100MB", HttpStatus.BAD_REQUEST);
+            // Validate file size (max 100MB)
+            if (file.getSize() > 100 * 1024 * 1024) {
+                throw new CustomServiceException("File size must be less than 100MB", HttpStatus.BAD_REQUEST);
+            }
         }
 
         String cloudinaryUrl = null;
@@ -190,6 +193,10 @@ public class LessonServiceImpl implements LessonService {
             Integer maxOrderIndex = lessonRepository.findMaxOrderIndexByCourseId(courseId);
             Integer newOrderIndex = (maxOrderIndex != null ? maxOrderIndex : 0) + 1;
 
+            if (lessonRequest.getOrderIndex() != null) {
+                newOrderIndex = lessonRequest.getOrderIndex();
+            }
+
             if (lessonRequest.getType().equals(LessonType.QUIZ)) {
                 if (lessonRequest.getQuizzesRequest() == null) {
                     throw new CustomServiceException("Quiz data is required when lesson type is QUIZ", HttpStatus.BAD_REQUEST);
@@ -197,11 +204,13 @@ public class LessonServiceImpl implements LessonService {
                 quizzes = quizzesService.createQuizzes(lessonRequest.getQuizzesRequest());
             }
 
-            try {
-                String folderName = "course-" + courseId.toString();
-                cloudinaryUrl = cloudinaryService.uploadFile(file, folderName);
-            } catch (Exception e) {
-                throw new CustomServiceException("Failed to upload file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            if (file != null && !file.isEmpty()) {
+                try {
+                    String folderName = "course-" + courseId.toString();
+                    cloudinaryUrl = cloudinaryService.uploadFile(file, folderName);
+                } catch (Exception e) {
+                    throw new CustomServiceException("Failed to upload file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
             }
 
             // Create lesson entity
@@ -241,7 +250,8 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     @Transactional
-    public ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId) {
+    public ApiResponse<Object> editLesson(LessonRequest lessonRequest, UUID courseId, UUID lessonId,
+                                          MultipartFile file) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         UUID currentUserId = userDetails.getId();
@@ -282,6 +292,40 @@ public class LessonServiceImpl implements LessonService {
 
             if (existsOrder) {
                 throw new CustomServiceException("Lesson order index " + lessonRequest.getOrderIndex() + " already exists in this course", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        String oldUrl = lesson.getUrl();
+        String newCloudinaryUrl = null;
+
+        if (file != null && !file.isEmpty()) {
+            // Validate size (100MB)
+            if (file.getSize() > 100 * 1024 * 1024) {
+                throw new CustomServiceException("File size must be less than 100MB", HttpStatus.BAD_REQUEST);
+            }
+
+            try {
+                String folderName = "course-" + courseId.toString();
+                newCloudinaryUrl = cloudinaryService.uploadFile(file, folderName);
+
+                lesson.setUrl(newCloudinaryUrl);
+
+            } catch (Exception e) {
+                throw new CustomServiceException("Failed to upload new file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            lesson.setUrl(lessonRequest.getUrl());
+        }
+
+        if (lessonRequest.getType() != LessonType.QUIZ) {
+            if (lesson.getUrl() == null || lesson.getUrl().isEmpty()) {
+                if (newCloudinaryUrl != null) {
+                    try {
+                        cloudinaryService.deleteFile(newCloudinaryUrl);
+                    } catch (Exception ignored) {
+                    }
+                }
+                throw new CustomServiceException("File or URL is required for VIDEO/DOCUMENT lesson", HttpStatus.BAD_REQUEST);
             }
         }
 
