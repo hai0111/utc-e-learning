@@ -16,6 +16,8 @@ export interface IQuizQuestionResponse {
   optionsResponseList: IOptionResponse[];
   isTouched?: boolean;
   markAsLater?: boolean;
+  selectedOptionIds?: string[];
+  textAnswer?: null | string;
 }
 
 export interface IQuiz {
@@ -23,4 +25,14 @@ export interface IQuiz {
   quizTitle: string;
   quizQuestionsResponses: IQuizQuestionResponse[];
   isAttempted: boolean;
+}
+
+export interface IAnswer {
+  questionId: string;
+  selectedOptionIds: string[];
+  textAnswer: string | null;
+}
+
+export interface IQuizFormSubmit {
+  studentAnswers: IAnswer[];
 }

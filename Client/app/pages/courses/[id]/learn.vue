@@ -31,6 +31,7 @@
               Bài kiểm tra cuối cùng
             </div>
             <v-btn
+              v-if="!lessonSelecting.quizzesResponseList?.[0]?.isAttempted"
               color="success"
               class="rounded-pill text-lg"
               :height="50"
@@ -39,12 +40,14 @@
                 $router.push(
                   `/quiz/${
                     lessonSelecting.quizzesResponseList?.[0]?.quizId ?? ''
-                  }`
+                  }?back=${$route.fullPath}`
                 )
               "
             >
               Start Exam
             </v-btn>
+
+            <div v-else>Bạn đã hoàn thành bài thi rồi</div>
           </div>
         </div>
 

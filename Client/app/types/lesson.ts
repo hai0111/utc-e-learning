@@ -23,6 +23,7 @@ export interface ILesson {
     | {
         quizId: string;
         quizTitle: string;
+        isAttempted: boolean;
       }[]
     | null;
 }

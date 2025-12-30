@@ -1,5 +1,6 @@
 <template>
   <div
+    v-if="!isSubmitSuccessFully && !isLoading"
     class="grid grid-cols-[400px_1fr] grid-rows-[auto_1fr_auto] h-[calc(100vh-80px)] rounded-xl"
   >
     <VSheet
@@ -54,7 +55,7 @@
     </VSheet>
 
     <VSheet width="100%" color="#fff" class="p-6 flex flex-col">
-      <div class="grow">
+      <div class="grow" v-if="itemSelected">
         <div class="flex justify-between">
           <div>
             Question
@@ -103,6 +104,7 @@
               itemSelected?.questionType as EQuestionType
             )
           "
+          v-model:selected="itemSelected!.selectedOptionIds"
           class="max-w-[500px] mt-4"
           :mandatory="itemSelected?.questionType === EQuestionType.SINGLE"
           :select-strategy="
@@ -114,7 +116,7 @@
           <v-list-item
             v-for="item in itemSelected?.optionsResponseList"
             :key="item.optionId"
-            :value="item"
+            :value="item.optionId"
             active-class="text-primary"
             class="py-2"
           >
@@ -145,7 +147,12 @@
           </v-list-item>
         </v-list>
 
-        <VTextarea v-else placeholder="Điền câu trả lời của bạn" class="mt-8" />
+        <VTextarea
+          v-else
+          v-model="itemSelected.textAnswer"
+          placeholder="Điền câu trả lời của bạn"
+          class="mt-8"
+        />
       </div>
 
       <div>
@@ -171,22 +178,34 @@
         :width="180"
         @click="isOpenConfirm = true"
       >
-        Hoàn thành
+        Finish
       </v-btn>
     </div>
 
     <VDialog v-model="isOpenConfirm" :width="480">
       <VCard>
-        <VCardTitle> Xác nhận </VCardTitle>
-        <VCardText> Bạn chắc chắn muốn nộp bài chứ? </VCardText>
+        <VCardTitle> Confirmation </VCardTitle>
+        <VCardText> Are you sure you want to submit your exam? </VCardText>
         <VCardActions>
           <span class="text-orange-600 text-sm ms-3"> 00:59:00 </span>
           <VSpacer />
-          <VBtn @click="isOpenConfirm = false"> Tiếp tục làm </VBtn>
-          <VBtn color="success" variant="flat"> Submit </VBtn>
+          <VBtn @click="isOpenConfirm = false"> Continue </VBtn>
+          <VBtn color="success" variant="flat" @click="onSubmit"> Submit </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+  </div>
+
+  <div
+    v-else-if="isLoading"
+    class="h-full flex flex-col items-center justify-center"
+  >
+    <v-progress-circular :size="70" :width="7" color="primary" indeterminate />
+  </div>
+
+  <div v-else class="h-full flex flex-col items-center justify-center gap-5">
+    <span class="text-2xl">Submission Successful 🎉</span>
+    <v-btn to="/" color="primary">Return to Home</v-btn>
   </div>
 </template>
 
@@ -195,10 +214,12 @@ definePageMeta({
   layout: "quiz-layout",
 });
 
+import { DEFAULT_MESSAGES } from "~/constants/messages";
 import ExamService from "~/services/exam.service";
 import { EQuestionType } from "~/types/lesson";
+import type { IAnswer } from "~/types/quiz";
 
-const { params } = useRoute();
+const { params, query } = useRoute();
 
 const { data: dataDetail } = useAsyncData(
   `course/${params.id as string}`,
@@ -207,6 +228,11 @@ const { data: dataDetail } = useAsyncData(
 );
 
 const selected = ref([dataDetail.value?.quizQuestionsResponses?.[0]]);
+
+watch(dataDetail, () => {
+  selected.value = [dataDetail.value?.quizQuestionsResponses?.[0]];
+});
+
 const itemSelected = computed(() => selected.value[0] ?? null);
 
 const questionIndex = ref(1);
@@ -232,6 +258,36 @@ watch(
 );
 
 const isOpenConfirm = ref(false);
+
+const isSubmitSuccessFully = ref(false);
+const isLoading = ref(false);
+
+const onSubmit = async () => {
+  isLoading.value = true;
+  const answers = dataDetail.value?.quizQuestionsResponses.map(
+    (item) =>
+      ({
+        questionId: item.questionId,
+        selectedOptionIds: item.selectedOptionIds,
+        textAnswer: item.textAnswer,
+      } as IAnswer)
+  );
+  try {
+    await ExamService.submit(params.id as string, {
+      studentAnswers: answers ?? [],
+    });
+
+    isSubmitSuccessFully.value = true;
+
+    if (query.back) await navigateTo((query.back as string) ?? "");
+
+    toastSuccess(DEFAULT_MESSAGES.apiSuccess);
+  } catch (err) {
+    toastError(DEFAULT_MESSAGES.apiError);
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <style scoped></style>
