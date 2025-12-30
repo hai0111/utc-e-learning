@@ -21,4 +21,12 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             "AND e.course.id = :courseId " +
             "AND e.isActive = true")
     Optional<Enrollment> findActiveEnrollmentByStudentAndCourse(UUID studentId, UUID courseId);
+
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN TRUE ELSE FALSE END " +
+            "FROM Enrollment e " +
+            "JOIN Lessons l ON l.course.id = e.course.id " +
+            "WHERE e.users.id = :studentId " +
+            "AND l.quizzes.id = :quizId " +
+            "AND e.isActive = true")
+    boolean existsByStudentIdAndQuizId(UUID studentId, UUID quizId);
 }

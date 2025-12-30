@@ -1,10 +1,12 @@
 package com.example.server.controller;
 
 import com.example.server.request.QuizSubmissionRequest;
+import com.example.server.response.QuizzesResponse;
 import com.example.server.service.QuizzesService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,5 +28,10 @@ public class QuizController {
                                         @RequestParam UUID lessonId,
                                         @RequestBody @Valid QuizSubmissionRequest request) {
         return ResponseEntity.ok(quizzesService.submitQuizzes(request, quizId, lessonId));
+    }
+
+    @GetMapping("/{quizId}/test")
+    public ResponseEntity<?> getQuizForTest(@PathVariable UUID quizId) {
+        return ResponseEntity.ok(quizzesService.getQuizForStudentToTake(quizId));
     }
 }

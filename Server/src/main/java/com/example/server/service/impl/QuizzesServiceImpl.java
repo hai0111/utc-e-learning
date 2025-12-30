@@ -27,7 +27,10 @@ import com.example.server.request.QuizSubmissionRequest;
 import com.example.server.request.QuizzesRequest;
 import com.example.server.request.StudentAnswerRequest;
 import com.example.server.response.ApiResponse;
+import com.example.server.response.QuizOptionsResponse;
+import com.example.server.response.QuizQuestionResponse;
 import com.example.server.response.QuizSubmissionResponse;
+import com.example.server.response.QuizzesResponse;
 import com.example.server.security.service.UserDetailsImpl;
 import com.example.server.service.QuizzesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -448,5 +452,52 @@ public class QuizzesServiceImpl implements QuizzesService {
                 throw new CustomServiceException("Duplicate " + entityName + " order index: " + index, HttpStatus.BAD_REQUEST);
             }
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<QuizzesResponse> getQuizForStudentToTake(UUID quizId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Users user = usersRepository.findByIdAndIsActive(userDetails.getId(), true);
+        if (user == null) {
+            throw new CustomServiceException("User does not exist", HttpStatus.BAD_REQUEST);
+        }
+
+        if (!user.getRole().equals(Role.STUDENT)) {
+            throw new CustomServiceException("Only students are allowed to take this quiz", HttpStatus.FORBIDDEN);
+        }
+
+        Quizzes quiz = quizzesRepository.findById(quizId)
+                .orElseThrow(() -> new CustomServiceException("Quiz not found", HttpStatus.NOT_FOUND));
+
+        if (user.getRole().equals(Role.STUDENT)) {
+            boolean isEnrolled = enrollmentRepository.existsByStudentIdAndQuizId(user.getId(), quizId);
+            if (!isEnrolled) {
+                throw new CustomServiceException("You are not enrolled in any course containing this quiz", HttpStatus.FORBIDDEN);
+            }
+        }
+
+        QuizzesResponse response = QuizzesResponse.getQuizzesResponse(quiz);
+
+        if (response.getQuizQuestionsResponses() != null) {
+            List<QuizQuestionResponse> questions = response.getQuizQuestionsResponses();
+
+            questions.sort(Comparator.comparing(QuizQuestionResponse::getOrderIndex, Comparator.nullsLast(Comparator.naturalOrder())));
+
+            for (QuizQuestionResponse q : questions) {
+                if (q.getOptionsResponseList() != null) {
+                    List<QuizOptionsResponse> options = q.getOptionsResponseList();
+
+                    options.sort(Comparator.comparing(QuizOptionsResponse::getOrderIndex, Comparator.nullsLast(Comparator.naturalOrder())));
+
+                    for (QuizOptionsResponse o : options) {
+                        o.setIsCorrect(null);
+                    }
+                }
+            }
+        }
+
+        return new ApiResponse<>(200, "Get quiz success", response);
     }
 }
