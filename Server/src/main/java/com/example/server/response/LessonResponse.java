@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -28,7 +29,7 @@ public class LessonResponse {
     private String createdByName;
     private UUID updatedBy;
     private String updatedByName;
-    private QuizzesResponse quizzesResponse;
+    private List<QuizzesResponse> quizzesResponseList;
     private Double currentPercent;
     private String createdAt;
     private String updatedAt;
@@ -60,9 +61,10 @@ public class LessonResponse {
         }
 
         if (lesson.getQuizzes() != null) {
-            response.setQuizzesResponse(QuizzesResponse.getQuizzesResponse(lesson.getQuizzes()));
+            QuizzesResponse qr = QuizzesResponse.getQuizzesResponse(lesson.getQuizzes());
+            response.setQuizzesResponseList(List.of(qr));
         } else {
-            response.setQuizzesResponse(null);
+            response.setQuizzesResponseList(null);
         }
 
         return response;
@@ -88,6 +90,14 @@ public class LessonResponse {
         response.setUpdatedBy(lessonsDto.getUpdatedById());
         response.setUpdatedByName(lessonsDto.getUpdatedByName());
         response.setCurrentPercent(lessonsDto.getCurrentPercent());
+        if (lessonsDto.getQuizId() != null) {
+            QuizzesResponse quizzesResponse = new QuizzesResponse();
+            quizzesResponse.setQuizId(lessonsDto.getQuizId());
+            quizzesResponse.setQuizTitle(lessonsDto.getQuizTitle());
+            response.setQuizzesResponseList(List.of(quizzesResponse));
+        } else {
+            response.setQuizzesResponseList(null);
+        }
         return response;
     }
 }

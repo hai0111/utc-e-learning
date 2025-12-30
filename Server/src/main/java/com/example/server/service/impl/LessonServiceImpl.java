@@ -107,12 +107,13 @@ public class LessonServiceImpl implements LessonService {
             boolean hasAttempts = quizAttemptsRepository.existsByQuizzesId(quiz.getId());
 
             // Set this in the response so FE can check if it allows editing the question and options.
-            if (lessonResponse.getQuizzesResponse() != null) {
-                lessonResponse.getQuizzesResponse().setIsAttempted(hasAttempts);
-            }
-
-            if (role == Role.STUDENT) {
-                hideCorrectAnswers(lessonResponse.getQuizzesResponse());
+            if (lessonResponse.getQuizzesResponseList() != null && !lessonResponse.getQuizzesResponseList().isEmpty()) {
+                for (QuizzesResponse qr : lessonResponse.getQuizzesResponseList()) {
+                    qr.setIsAttempted(hasAttempts);
+                    if (role == Role.STUDENT) {
+                        hideCorrectAnswers(qr);
+                    }
+                }
             }
         }
         return new ApiResponse<>(200, "Get lesson successfully", lessonResponse);
