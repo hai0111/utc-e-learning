@@ -43,11 +43,16 @@ public interface CoursesRepository extends JpaRepository<Courses, UUID> {
             "c.isActive as isActive, " +
             "c.createdAt as createdAt, " +
             "c.updatedAt as updatedAt, " +
-            "u.name as instructor " +
+            "u.name as instructor, " +
+            "COALESCE(SUM(p.progressPercentage), 0) as sumProgressAchieved, " +
+            "(SELECT COUNT(l.id) FROM Lessons l WHERE l.course.id = c.id AND l.isActive = true) as totaLessonCount " +
             "FROM Courses c " +
             "INNER JOIN Users u on c.users.id = u.id " +
             "INNER JOIN Enrollment e on e.course.id = c.id " +
-            "WHERE c.isActive = true and e.users.id = :studentId ORDER BY c.updatedAt DESC")
+            "LEFT JOIN Progress p on p.enrollment.id = e.id " +
+            "WHERE c.isActive = true and e.users.id = :studentId " +
+            "GROUP BY c.id, c.title, c.description, c.isActive, c.createdAt, c.updatedAt, u.name " +
+            "ORDER BY c.updatedAt DESC")
     Page<CoursesDto> findAllCourseByStudent(Pageable pageable, UUID studentId);
 
     @Query("SELECT c.id as id, " +
