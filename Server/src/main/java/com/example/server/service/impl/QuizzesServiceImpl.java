@@ -167,17 +167,15 @@ public class QuizzesServiceImpl implements QuizzesService {
     }
 
     @Override
-    public ApiResponse<Object> submitQuizzes(QuizSubmissionRequest request, UUID quizId, UUID lessonId) {
+    @Transactional
+    public ApiResponse<Object> submitQuizzes(QuizSubmissionRequest request, UUID quizId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        Lessons lessons = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new CustomServiceException("Lesson not found", HttpStatus.NOT_FOUND));
-
-        // Check if this quiz is correct for this lesson
-        if (lessons.getQuizzes() == null || !lessons.getQuizzes().getId().equals(quizId)) {
-            throw new CustomServiceException("This quiz does not belong to the specified lesson", HttpStatus.BAD_REQUEST);
-        }
+        // 2. Tìm Lesson dựa trên QuizId
+        // Logic: Từ bài thi tìm ngược ra bài học
+        Lessons lessons = lessonRepository.findByQuizzesId(quizId)
+                .orElseThrow(() -> new CustomServiceException("Lesson not found for this Quiz", HttpStatus.NOT_FOUND));
 
         Quizzes quiz = lessons.getQuizzes();
 
@@ -200,23 +198,19 @@ public class QuizzesServiceImpl implements QuizzesService {
         double totalScoreObtained = 0.0;
         List<QuizAnswers> answersToSave = new ArrayList<>();
 
-        // Flag is used to indicate whether there is an essay question
         boolean hasQuestionTypeText = false;
 
-        // Retrieve all questions and correct answers from the database using quizId
         List<QuizQuestions> questionsList = quizQuestionsRepository.findAllByQuizzesId(quizId);
         Map<UUID, QuizQuestions> questionMap = questionsList.stream()
                 .collect(Collectors.toMap(QuizQuestions::getId, questions -> questions));
 
-        // Browse the list of STUDENT's answers
         for (StudentAnswerRequest answerRequest : request.getStudentAnswers()) {
             QuizQuestions question = questionMap.get(answerRequest.getQuestionId());
-            if (question == null) continue; // Skip if the question ID does not belong to this quiz.
+            if (question == null) continue;
 
             double obtainedPointForQuestion = 0.0;
 
             // CASE A: (TEXT)
-            // If it's an essay question, the score will be set to 0, and we'll wait for the instructor to grade it
             if (question.getQuestionType() == QuestionType.TEXT) {
                 hasQuestionTypeText = true;
 
@@ -232,27 +226,21 @@ public class QuizzesServiceImpl implements QuizzesService {
 
             // CASE B: SINGLE / MULTIPLE
             else {
-                // Get the list of correct answer IDs from the database
                 Set<UUID> correctOptionIds = question.getOptions().stream()
                         .filter(QuizOptions::getIsCorrect)
                         .map(QuizOptions::getId)
                         .collect(Collectors.toSet());
 
-                // Get the list of student answer IDs
                 List<UUID> selectedIds = answerRequest.getSelectedOptionIds() != null ? answerRequest.getSelectedOptionIds() : new ArrayList<>();
                 Set<UUID> selectedIdsSet = new HashSet<>(selectedIds);
 
-                // Create flags to check if the student has selected all the correct answers for a question
                 boolean isCorrect = false;
 
                 if (question.getQuestionType() == QuestionType.SINGLE) {
-                    // True if you choose one answer AND that answer is within the correct set
                     if (selectedIdsSet.size() == 1 && correctOptionIds.contains(selectedIds.get(0))) {
                         isCorrect = true;
                     }
                 } else if (question.getQuestionType() == QuestionType.MULTIPLE) {
-                    // True if: Number of selected answers == Number of correct answers and the list of selected answers matches the list of correct answers
-                    // (Making even one mistake will result in losing all points for that question)
                     if (selectedIdsSet.size() == correctOptionIds.size() && correctOptionIds.containsAll(selectedIdsSet)) {
                         isCorrect = true;
                     }
@@ -265,7 +253,6 @@ public class QuizzesServiceImpl implements QuizzesService {
                 totalScoreObtained += obtainedPointForQuestion;
 
                 if (selectedIds.isEmpty()) {
-                    // If the student doesn't select anything -> Save a blank record to indicate that the selection has been skipped
                     QuizAnswers emptyAns = new QuizAnswers();
                     emptyAns.setQuizAttempts(attempt);
                     emptyAns.setQuizQuestions(question);
@@ -275,7 +262,6 @@ public class QuizzesServiceImpl implements QuizzesService {
                     answersToSave.add(emptyAns);
                 } else {
                     double scorePerOption = isCorrect ? (obtainedPointForQuestion / selectedIds.size()) : 0.0;
-                    // Save each selected option.
                     for (UUID optId : selectedIds) {
                         QuizOptions optionEntity = quizOptionsRepository.findById(optId).orElse(null);
                         if (optionEntity != null) {
@@ -299,7 +285,7 @@ public class QuizzesServiceImpl implements QuizzesService {
         quizAttemptsRepository.save(attempt);
 
         double maxScore = questionsList.stream().mapToDouble(QuizQuestions::getRawPoint).sum();
-        double passThreshold = maxScore * 0.5; // Example: 50% is needed to pass the subject.
+        double passThreshold = maxScore * 0.5;
 
         if (totalScoreObtained >= passThreshold) {
             updateLessonProgress(enrollment, lessons);

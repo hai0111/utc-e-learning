@@ -16,7 +16,7 @@ public interface QuizzesService {
 
     void deleteQuizIfUnused(UUID quizId);
 
-    ApiResponse<Object> submitQuizzes(QuizSubmissionRequest quizSubmissionRequest, UUID quizId, UUID lessonId);
+    ApiResponse<Object> submitQuizzes(QuizSubmissionRequest quizSubmissionRequest, UUID quizId);
 
     ApiResponse<QuizzesResponse> getQuizForStudentToTake(UUID quizId);
 }
